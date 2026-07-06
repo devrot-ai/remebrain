@@ -9,50 +9,298 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppViolationsRouteImport } from './routes/_app/violations'
+import { Route as AppSettingsRouteImport } from './routes/_app/settings'
+import { Route as AppReviewRouteImport } from './routes/_app/review'
+import { Route as AppReportsRouteImport } from './routes/_app/reports'
+import { Route as AppProfileRouteImport } from './routes/_app/profile'
+import { Route as AppHeatmapRouteImport } from './routes/_app/heatmap'
+import { Route as AppDetectionsRouteImport } from './routes/_app/detections'
+import { Route as AppCamerasRouteImport } from './routes/_app/cameras'
+import { Route as AppAnalyticsRouteImport } from './routes/_app/analytics'
+import { Route as AppViolationsIdRouteImport } from './routes/_app/violations.$id'
 
-const IndexRoute = IndexRouteImport.update({
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
+} as any)
+const AppViolationsRoute = AppViolationsRouteImport.update({
+  id: '/violations',
+  path: '/violations',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReviewRoute = AppReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportsRoute = AppReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProfileRoute = AppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppHeatmapRoute = AppHeatmapRouteImport.update({
+  id: '/heatmap',
+  path: '/heatmap',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDetectionsRoute = AppDetectionsRouteImport.update({
+  id: '/detections',
+  path: '/detections',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCamerasRoute = AppCamerasRouteImport.update({
+  id: '/cameras',
+  path: '/cameras',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppViolationsIdRoute = AppViolationsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppViolationsRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AppIndexRoute
+  '/analytics': typeof AppAnalyticsRoute
+  '/cameras': typeof AppCamerasRoute
+  '/detections': typeof AppDetectionsRoute
+  '/heatmap': typeof AppHeatmapRoute
+  '/profile': typeof AppProfileRoute
+  '/reports': typeof AppReportsRoute
+  '/review': typeof AppReviewRoute
+  '/settings': typeof AppSettingsRoute
+  '/violations': typeof AppViolationsRouteWithChildren
+  '/violations/$id': typeof AppViolationsIdRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/analytics': typeof AppAnalyticsRoute
+  '/cameras': typeof AppCamerasRoute
+  '/detections': typeof AppDetectionsRoute
+  '/heatmap': typeof AppHeatmapRoute
+  '/profile': typeof AppProfileRoute
+  '/reports': typeof AppReportsRoute
+  '/review': typeof AppReviewRoute
+  '/settings': typeof AppSettingsRoute
+  '/violations': typeof AppViolationsRouteWithChildren
+  '/': typeof AppIndexRoute
+  '/violations/$id': typeof AppViolationsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/_app/analytics': typeof AppAnalyticsRoute
+  '/_app/cameras': typeof AppCamerasRoute
+  '/_app/detections': typeof AppDetectionsRoute
+  '/_app/heatmap': typeof AppHeatmapRoute
+  '/_app/profile': typeof AppProfileRoute
+  '/_app/reports': typeof AppReportsRoute
+  '/_app/review': typeof AppReviewRoute
+  '/_app/settings': typeof AppSettingsRoute
+  '/_app/violations': typeof AppViolationsRouteWithChildren
+  '/_app/': typeof AppIndexRoute
+  '/_app/violations/$id': typeof AppViolationsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/analytics'
+    | '/cameras'
+    | '/detections'
+    | '/heatmap'
+    | '/profile'
+    | '/reports'
+    | '/review'
+    | '/settings'
+    | '/violations'
+    | '/violations/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/analytics'
+    | '/cameras'
+    | '/detections'
+    | '/heatmap'
+    | '/profile'
+    | '/reports'
+    | '/review'
+    | '/settings'
+    | '/violations'
+    | '/'
+    | '/violations/$id'
+  id:
+    | '__root__'
+    | '/_app'
+    | '/_app/analytics'
+    | '/_app/cameras'
+    | '/_app/detections'
+    | '/_app/heatmap'
+    | '/_app/profile'
+    | '/_app/reports'
+    | '/_app/review'
+    | '/_app/settings'
+    | '/_app/violations'
+    | '/_app/'
+    | '/_app/violations/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/': {
+      id: '/_app/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/violations': {
+      id: '/_app/violations'
+      path: '/violations'
+      fullPath: '/violations'
+      preLoaderRoute: typeof AppViolationsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/review': {
+      id: '/_app/review'
+      path: '/review'
+      fullPath: '/review'
+      preLoaderRoute: typeof AppReviewRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reports': {
+      id: '/_app/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AppReportsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/profile': {
+      id: '/_app/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AppProfileRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/heatmap': {
+      id: '/_app/heatmap'
+      path: '/heatmap'
+      fullPath: '/heatmap'
+      preLoaderRoute: typeof AppHeatmapRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/detections': {
+      id: '/_app/detections'
+      path: '/detections'
+      fullPath: '/detections'
+      preLoaderRoute: typeof AppDetectionsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/cameras': {
+      id: '/_app/cameras'
+      path: '/cameras'
+      fullPath: '/cameras'
+      preLoaderRoute: typeof AppCamerasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/analytics': {
+      id: '/_app/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AppAnalyticsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/violations/$id': {
+      id: '/_app/violations/$id'
+      path: '/$id'
+      fullPath: '/violations/$id'
+      preLoaderRoute: typeof AppViolationsIdRouteImport
+      parentRoute: typeof AppViolationsRoute
     }
   }
 }
 
+interface AppViolationsRouteChildren {
+  AppViolationsIdRoute: typeof AppViolationsIdRoute
+}
+
+const AppViolationsRouteChildren: AppViolationsRouteChildren = {
+  AppViolationsIdRoute: AppViolationsIdRoute,
+}
+
+const AppViolationsRouteWithChildren = AppViolationsRoute._addFileChildren(
+  AppViolationsRouteChildren,
+)
+
+interface AppRouteChildren {
+  AppAnalyticsRoute: typeof AppAnalyticsRoute
+  AppCamerasRoute: typeof AppCamerasRoute
+  AppDetectionsRoute: typeof AppDetectionsRoute
+  AppHeatmapRoute: typeof AppHeatmapRoute
+  AppProfileRoute: typeof AppProfileRoute
+  AppReportsRoute: typeof AppReportsRoute
+  AppReviewRoute: typeof AppReviewRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppViolationsRoute: typeof AppViolationsRouteWithChildren
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppAnalyticsRoute: AppAnalyticsRoute,
+  AppCamerasRoute: AppCamerasRoute,
+  AppDetectionsRoute: AppDetectionsRoute,
+  AppHeatmapRoute: AppHeatmapRoute,
+  AppProfileRoute: AppProfileRoute,
+  AppReportsRoute: AppReportsRoute,
+  AppReviewRoute: AppReviewRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppViolationsRoute: AppViolationsRouteWithChildren,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
