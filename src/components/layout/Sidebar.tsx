@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   Video,
@@ -18,6 +18,7 @@ import {
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { SoftToggle } from "@/components/soft/SoftToggle";
+import { supabase } from "@/integrations/supabase/client";
 
 const items = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -34,12 +35,18 @@ const items = [
 
 export function Sidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [dark, setDark] = useState(false);
 
   const toggleDark = (v: boolean) => {
     setDark(v);
     document.documentElement.classList.toggle("dark", v);
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
   };
 
   return (
@@ -110,7 +117,10 @@ export function Sidebar() {
             </span>
             <SoftToggle checked={dark} onChange={toggleDark} />
           </div>
-          <button className="soft-press soft-raised-sm rounded-[20px] py-2.5 text-sm font-semibold text-brand-red inline-flex items-center justify-center gap-2">
+          <button
+            onClick={handleLogout}
+            className="soft-press soft-raised-sm rounded-[20px] py-2.5 text-sm font-semibold text-brand-red inline-flex items-center justify-center gap-2"
+          >
             <LogOut className="h-4 w-4" />
             Logout
           </button>

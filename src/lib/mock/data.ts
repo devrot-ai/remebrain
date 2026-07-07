@@ -97,18 +97,18 @@ export const cameraPerf = cameras.map((c) => ({
 }));
 
 export const pipelineSteps = [
-  { key: "frame", label: "Video Frame", icon: "🎞" },
-  { key: "vehicle", label: "Vehicle Detection", icon: "🚗" },
-  { key: "track", label: "Object Tracking", icon: "🎯" },
-  { key: "pose", label: "Human Pose", icon: "🧍" },
-  { key: "hand", label: "Hand Motion", icon: "✋" },
-  { key: "trash", label: "Trash Detection", icon: "🗑" },
-  { key: "traj", label: "Trajectory Prediction", icon: "↝" },
-  { key: "assoc", label: "Vehicle Association", icon: "🔗" },
-  { key: "plate", label: "License Plate", icon: "🔤" },
-  { key: "evidence", label: "Evidence Generation", icon: "📸" },
-  { key: "review", label: "Human Review", icon: "👤" },
-  { key: "approved", label: "Approved Fine", icon: "✅" },
+  { key: "frame", label: "Video Frame" },
+  { key: "vehicle", label: "Vehicle Detection" },
+  { key: "track", label: "Object Tracking" },
+  { key: "pose", label: "Human Pose" },
+  { key: "hand", label: "Hand Motion" },
+  { key: "trash", label: "Trash Detection" },
+  { key: "traj", label: "Trajectory" },
+  { key: "assoc", label: "Vehicle Match" },
+  { key: "plate", label: "License Plate" },
+  { key: "evidence", label: "Evidence" },
+  { key: "review", label: "Human Review" },
+  { key: "approved", label: "Approved Fine" },
 ] as const;
 
 export const heatmapHotspots = [

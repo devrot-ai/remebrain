@@ -71,15 +71,16 @@ function Dashboard() {
               transition={{ duration: 0.4, delay: i * 0.05 }}
             >
               <SoftCard hover className="!p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className={`soft-pressed-sm h-10 w-10 rounded-2xl grid place-items-center ${toneClass[s.tone]}`}>
-                    <Icon className="h-4 w-4" />
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`soft-pressed-sm h-9 w-9 rounded-xl grid place-items-center ${toneClass[s.tone]}`}>
+                    <Icon className="h-4 w-4" strokeWidth={2.25} />
                   </div>
+                  <div className={`h-1.5 w-1.5 rounded-full ${toneClass[s.tone]} bg-current opacity-60`} />
                 </div>
-                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold">
                   {s.label}
                 </div>
-                <div className={`text-2xl font-black mt-1 ${toneClass[s.tone]}`}>
+                <div className="text-[28px] leading-none font-black tracking-tight text-foreground mt-2 tabular-nums">
                   <CountUp value={s.value} decimals={s.decimals ?? 0} suffix={s.suffix} />
                 </div>
               </SoftCard>
@@ -117,29 +118,40 @@ function Dashboard() {
               Open <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="soft-pressed rounded-[24px] p-5 flex items-center justify-center flex-col">
-            <div className="text-6xl font-black text-brand-gold">
+          <div className="soft-pressed rounded-[24px] p-6 flex items-center justify-center flex-col">
+            <div className="text-[64px] leading-none font-black tracking-tight text-foreground tabular-nums">
               <CountUp value={37} />
             </div>
-            <div className="text-sm text-muted-foreground mt-1">Pending violations</div>
-            <div className="mt-4 grid grid-cols-3 gap-3 text-center w-full">
-              <div>
-                <div className="text-lg font-bold text-brand-green">
+            <div className="text-xs text-muted-foreground mt-2 uppercase tracking-[0.14em] font-semibold">
+              Pending violations
+            </div>
+            <div className="mt-5 grid grid-cols-3 gap-3 text-center w-full">
+              <div className="flex flex-col items-center gap-1">
+                <div className="text-xl font-black text-foreground tabular-nums">
                   <CountUp value={182} />
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase">Approved</div>
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                  <span className="h-1.5 w-1.5 rounded-full bg-brand-green" />
+                  Approved
+                </div>
               </div>
-              <div>
-                <div className="text-lg font-bold text-brand-red">
+              <div className="flex flex-col items-center gap-1">
+                <div className="text-xl font-black text-foreground tabular-nums">
                   <CountUp value={9} />
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase">Rejected</div>
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                  <span className="h-1.5 w-1.5 rounded-full bg-brand-red" />
+                  Rejected
+                </div>
               </div>
-              <div>
-                <div className="text-lg font-bold text-brand-blue">
+              <div className="flex flex-col items-center gap-1">
+                <div className="text-xl font-black text-foreground tabular-nums">
                   <CountUp value={4} />
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase">False+</div>
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                  <span className="h-1.5 w-1.5 rounded-full bg-brand-blue" />
+                  False+
+                </div>
               </div>
             </div>
           </div>
