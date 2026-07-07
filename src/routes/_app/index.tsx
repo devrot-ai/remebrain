@@ -71,15 +71,16 @@ function Dashboard() {
               transition={{ duration: 0.4, delay: i * 0.05 }}
             >
               <SoftCard hover className="!p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className={`soft-pressed-sm h-10 w-10 rounded-2xl grid place-items-center ${toneClass[s.tone]}`}>
-                    <Icon className="h-4 w-4" />
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`soft-pressed-sm h-9 w-9 rounded-xl grid place-items-center ${toneClass[s.tone]}`}>
+                    <Icon className="h-4 w-4" strokeWidth={2.25} />
                   </div>
+                  <div className={`h-1.5 w-1.5 rounded-full ${toneClass[s.tone]} bg-current opacity-60`} />
                 </div>
-                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold">
                   {s.label}
                 </div>
-                <div className={`text-2xl font-black mt-1 ${toneClass[s.tone]}`}>
+                <div className="text-[28px] leading-none font-black tracking-tight text-foreground mt-2 tabular-nums">
                   <CountUp value={s.value} decimals={s.decimals ?? 0} suffix={s.suffix} />
                 </div>
               </SoftCard>
