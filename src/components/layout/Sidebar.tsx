@@ -35,12 +35,18 @@ const items = [
 
 export function Sidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [dark, setDark] = useState(false);
 
   const toggleDark = (v: boolean) => {
     setDark(v);
     document.documentElement.classList.toggle("dark", v);
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
   };
 
   return (
