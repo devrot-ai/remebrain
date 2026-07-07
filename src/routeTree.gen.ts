@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppViolationsRouteImport } from './routes/_app/violations'
@@ -22,6 +23,11 @@ import { Route as AppCamerasRouteImport } from './routes/_app/cameras'
 import { Route as AppAnalyticsRouteImport } from './routes/_app/analytics'
 import { Route as AppViolationsIdRouteImport } from './routes/_app/violations.$id'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
@@ -84,6 +90,7 @@ const AppViolationsIdRoute = AppViolationsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/auth': typeof AuthRoute
   '/analytics': typeof AppAnalyticsRoute
   '/cameras': typeof AppCamerasRoute
   '/detections': typeof AppDetectionsRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/violations/$id': typeof AppViolationsIdRoute
 }
 export interface FileRoutesByTo {
+  '/auth': typeof AuthRoute
   '/analytics': typeof AppAnalyticsRoute
   '/cameras': typeof AppCamerasRoute
   '/detections': typeof AppDetectionsRoute
@@ -111,6 +119,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
+  '/auth': typeof AuthRoute
   '/_app/analytics': typeof AppAnalyticsRoute
   '/_app/cameras': typeof AppCamerasRoute
   '/_app/detections': typeof AppDetectionsRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/analytics'
     | '/cameras'
     | '/detections'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/violations/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/auth'
     | '/analytics'
     | '/cameras'
     | '/detections'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_app'
+    | '/auth'
     | '/_app/analytics'
     | '/_app/cameras'
     | '/_app/detections'
@@ -168,10 +180,18 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app': {
       id: '/_app'
       path: ''
@@ -301,6 +321,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

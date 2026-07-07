@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   Video,
@@ -18,6 +18,7 @@ import {
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { SoftToggle } from "@/components/soft/SoftToggle";
+import { supabase } from "@/integrations/supabase/client";
 
 const items = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
