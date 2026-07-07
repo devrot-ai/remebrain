@@ -118,29 +118,40 @@ function Dashboard() {
               Open <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="soft-pressed rounded-[24px] p-5 flex items-center justify-center flex-col">
-            <div className="text-6xl font-black text-brand-gold">
+          <div className="soft-pressed rounded-[24px] p-6 flex items-center justify-center flex-col">
+            <div className="text-[64px] leading-none font-black tracking-tight text-foreground tabular-nums">
               <CountUp value={37} />
             </div>
-            <div className="text-sm text-muted-foreground mt-1">Pending violations</div>
-            <div className="mt-4 grid grid-cols-3 gap-3 text-center w-full">
-              <div>
-                <div className="text-lg font-bold text-brand-green">
+            <div className="text-xs text-muted-foreground mt-2 uppercase tracking-[0.14em] font-semibold">
+              Pending violations
+            </div>
+            <div className="mt-5 grid grid-cols-3 gap-3 text-center w-full">
+              <div className="flex flex-col items-center gap-1">
+                <div className="text-xl font-black text-foreground tabular-nums">
                   <CountUp value={182} />
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase">Approved</div>
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                  <span className="h-1.5 w-1.5 rounded-full bg-brand-green" />
+                  Approved
+                </div>
               </div>
-              <div>
-                <div className="text-lg font-bold text-brand-red">
+              <div className="flex flex-col items-center gap-1">
+                <div className="text-xl font-black text-foreground tabular-nums">
                   <CountUp value={9} />
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase">Rejected</div>
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                  <span className="h-1.5 w-1.5 rounded-full bg-brand-red" />
+                  Rejected
+                </div>
               </div>
-              <div>
-                <div className="text-lg font-bold text-brand-blue">
+              <div className="flex flex-col items-center gap-1">
+                <div className="text-xl font-black text-foreground tabular-nums">
                   <CountUp value={4} />
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase">False+</div>
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                  <span className="h-1.5 w-1.5 rounded-full bg-brand-blue" />
+                  False+
+                </div>
               </div>
             </div>
           </div>
