@@ -117,7 +117,10 @@ export function Sidebar() {
             </span>
             <SoftToggle checked={dark} onChange={toggleDark} />
           </div>
-          <button className="soft-press soft-raised-sm rounded-[20px] py-2.5 text-sm font-semibold text-brand-red inline-flex items-center justify-center gap-2">
+          <button
+            onClick={handleLogout}
+            className="soft-press soft-raised-sm rounded-[20px] py-2.5 text-sm font-semibold text-brand-red inline-flex items-center justify-center gap-2"
+          >
             <LogOut className="h-4 w-4" />
             Logout
           </button>
