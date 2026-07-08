@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { LITTER_SYSTEM_PROMPT, LITTER_USER_PROMPT } from "./prompt";
+
 
 const InputSchema = z.object({
   imageDataUrl: z.string().min(32).max(20_000_000),
@@ -18,9 +20,9 @@ export const analyzeFrameLovable = createServerFn({ method: "POST" })
       throw new Error("LOVABLE_API_KEY is not configured on the server.");
     }
 
-    const { LITTER_SYSTEM_PROMPT, LITTER_USER_PROMPT } = await import("./prompt");
     const model = data.model ?? "google/gemini-2.5-flash";
     const started = Date.now();
+
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
