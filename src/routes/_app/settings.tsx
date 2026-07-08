@@ -5,6 +5,8 @@ import { SoftCard } from "@/components/soft/SoftCard";
 import { SoftInput } from "@/components/soft/SoftInput";
 import { SoftToggle } from "@/components/soft/SoftToggle";
 import { SoftButton } from "@/components/soft/SoftButton";
+import { AiProviderCard } from "@/components/AiProviderCard";
+
 
 export const Route = createFileRoute("/_app/settings")({
   head: () => ({
@@ -27,7 +29,10 @@ function SettingsPage() {
       <TopBar title="Settings" subtitle="Platform configuration" />
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <AiProviderCard />
+
         <SoftCard>
+
           <h2 className="font-bold text-lg mb-1">AI model settings</h2>
           <p className="text-xs text-muted-foreground mb-4">
             Detection thresholds and inference behaviour
