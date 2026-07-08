@@ -3,7 +3,9 @@ import { MapPin, Clock, Camera as CameraIcon } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
 import { SoftCard } from "@/components/soft/SoftCard";
 import { SoftBadge } from "@/components/soft/SoftBadge";
+import { AnalyzerCard } from "@/components/AnalyzerCard";
 import { detections } from "@/lib/mock/data";
+
 
 export const Route = createFileRoute("/_app/detections")({
   head: () => ({
@@ -24,7 +26,11 @@ function FeedPage() {
   return (
     <>
       <TopBar title="Detection feed" subtitle="Every AI-flagged event, chronologically" />
+      <div className="mb-6">
+        <AnalyzerCard />
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
         {detections.map((d) => (
           <Link
             key={d.id}
