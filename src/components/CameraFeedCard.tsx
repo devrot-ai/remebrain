@@ -2,11 +2,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Wifi, Signal } from "lucide-react";
 import { useLiveDetections } from "@/lib/mock/useLiveDetections";
 import { SoftBadge } from "@/components/soft/SoftBadge";
+import { CameraInferenceHistory } from "@/components/CameraInferenceHistory";
 import type { Camera } from "@/lib/mock/data";
 import { cn } from "@/lib/utils";
 
 export function CameraFeedCard({ camera, seed }: { camera: Camera; seed: number }) {
-  const { boxes, litter } = useLiveDetections(seed, camera.status === "online" ? 0.08 : 0);
+  const { boxes, litter, history } = useLiveDetections(seed, camera.status === "online" ? 0.08 : 0);
   const offline = camera.status === "offline";
 
   const statusTone =
@@ -156,6 +157,14 @@ export function CameraFeedCard({ camera, seed }: { camera: Camera; seed: number 
           </div>
         </div>
       </div>
+
+      {/* Per-camera inference history */}
+      {!offline && (
+        <CameraInferenceHistory
+          cameraName={camera.name}
+          history={history}
+        />
+      )}
     </div>
   );
 }

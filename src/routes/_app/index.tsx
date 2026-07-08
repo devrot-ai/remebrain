@@ -14,7 +14,9 @@ import { SoftCard } from "@/components/soft/SoftCard";
 import { SoftBadge } from "@/components/soft/SoftBadge";
 import { CountUp } from "@/components/soft/CountUp";
 import { PipelineFlow } from "@/components/PipelineFlow";
-import { cameras, detections } from "@/lib/mock/data";
+import { cameras } from "@/lib/mock/data";
+import { useVisionDetectionsContext } from "@/hooks/VisionDetectionsContext";
+import { isVisionDetection } from "@/lib/vision/parser";
 
 export const Route = createFileRoute("/_app/")({
   head: () => ({
@@ -52,7 +54,8 @@ const toneClass = {
 };
 
 function Dashboard() {
-  const recent = detections.slice(0, 5);
+  const { allDetections } = useVisionDetectionsContext();
+  const recent = allDetections.slice(0, 5);
   return (
     <>
       <TopBar
@@ -181,19 +184,24 @@ function Dashboard() {
               params={{ id: d.id }}
               className="soft-raised-sm soft-hover rounded-[24px] p-4 flex gap-4"
             >
-              <div className="soft-pressed rounded-2xl h-16 w-24 shrink-0 grid place-items-center text-xs font-black text-brand-blue">
-                {d.plate}
+              <div className="soft-pressed rounded-2xl h-16 w-24 shrink-0 grid place-items-center text-xs font-black text-brand-blue relative overflow-hidden">
+                {isVisionDetection(d) && d.__visionMeta.imageDataUri ? (
+                  <img src={d.__visionMeta.imageDataUri} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                ) : (
+                  d.plate
+                )}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="font-bold text-sm truncate">{d.litter}</div>
                 <div className="text-xs text-muted-foreground truncate">
-                  {d.color} {d.vehicle} · {d.cameraName}
+                  {isVisionDetection(d) ? "Vision AI" : `${d.color} ${d.vehicle}`} · {d.cameraName}
                 </div>
                 <div className="flex gap-1.5 mt-2">
                   <SoftBadge tone={d.status === "pending" ? "gold" : d.status === "approved" ? "green" : "red"}>
                     {d.status}
                   </SoftBadge>
                   <SoftBadge tone="blue">{(d.confidence * 100).toFixed(0)}%</SoftBadge>
+                  {isVisionDetection(d) && <SoftBadge tone="blue">AI</SoftBadge>}
                 </div>
               </div>
             </Link>
