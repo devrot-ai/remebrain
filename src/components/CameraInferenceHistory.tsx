@@ -71,9 +71,8 @@ export function CameraInferenceHistory({
           <div className="soft-pressed-sm h-7 w-7 rounded-xl grid place-items-center text-brand-blue shrink-0">
             <Layers className="h-3.5 w-3.5" />
           </div>
-          <div className="min-w-0">
             <div className="text-xs font-bold truncate">
-              Inference History
+              Inference History · {cameraName}
             </div>
             <div className="text-[10px] text-muted-foreground truncate">
               {history.length} frames · avg{" "}
