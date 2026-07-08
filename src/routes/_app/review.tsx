@@ -27,9 +27,8 @@ export const Route = createFileRoute("/_app/review")({
 /** Individual review card with expandable violation preview. */
 function ReviewCard({ d, index }: { d: Detection; index: number }) {
   const [showPreview, setShowPreview] = useState(false);
-  const isVision = isVisionDetection(d);
-  const visionMeta = isVision ? d.__visionMeta : null;
-
+  const visionMeta = isVisionDetection(d) ? d.__visionMeta : null;
+  const isVision = visionMeta !== null;
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
