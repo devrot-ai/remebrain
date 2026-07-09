@@ -94,6 +94,9 @@ export const PROVIDER_LABELS: Record<AiProvider, string> = {
 // ── Persistence helpers ─────────────────────────────────────────────
 
 function loadSettings(): AiProviderSettings {
+  if (typeof window === "undefined" || typeof localStorage === "undefined") {
+    return { ...DEFAULT_SETTINGS };
+  }
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { ...DEFAULT_SETTINGS };
@@ -106,6 +109,9 @@ function loadSettings(): AiProviderSettings {
 }
 
 function saveSettings(settings: AiProviderSettings): void {
+  if (typeof window === "undefined" || typeof localStorage === "undefined") {
+    return;
+  }
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
   } catch {

@@ -57,14 +57,6 @@ export function ImageUploader() {
     [handleFile],
   );
 
-  // Latest Vision detections for overlay
-  const latestVisionDetection = visionDetections.length > 0
-    ? visionDetections.find((d) => isVisionDetection(d))
-    : null;
-  const visionMeta =
-    latestVisionDetection && isVisionDetection(latestVisionDetection)
-      ? latestVisionDetection.__visionMeta
-      : null;
 
   return (
     <SoftCard className="mb-6">

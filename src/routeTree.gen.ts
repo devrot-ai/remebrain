@@ -347,3 +347,10 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<(typeof import('./router.tsx'))['getRouter']>>
+    config: Awaited<ReturnType<(typeof import('./start.ts'))['startInstance']['getOptions']>>
+  }
+}

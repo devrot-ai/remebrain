@@ -30,14 +30,13 @@ export const Route = createFileRoute("/_app/review")({
 function ReviewCard({ d, index }: { d: Detection; index: number }) {
   const [showPreview, setShowPreview] = useState(false);
   const { decide, getDecision } = useReviewDecisions();
-  const isVision = isVisionDetection(d);
-  const visionMeta = isVision ? d.__visionMeta : null;
+  const visionMeta = isVisionDetection(d) ? d.__visionMeta : null;
+  const isVision = visionMeta !== null;
   const decision = getDecision(d.id);
 
   const handleAction = (action: ReviewAction) => {
     decide(d.id, action);
   };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
