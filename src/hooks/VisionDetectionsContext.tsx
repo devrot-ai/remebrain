@@ -2,7 +2,8 @@
  * React Context that shares Vision detection state across all pages.
  *
  * Also provides a merged `allDetections` array that combines Vision
- * results (newest first) with the mock data fallback.
+ * results (newest first) with the mock data fallback, with officer
+ * review decisions applied so status changes propagate everywhere.
  */
 
 import { createContext, useContext, useMemo } from "react";
@@ -14,6 +15,7 @@ import {
 import { detections as mockDetections } from "@/lib/mock/data";
 import type { Detection } from "@/lib/mock/data";
 import { isVisionConfigured } from "@/lib/vision/client";
+import { useReviewDecisions } from "./ReviewDecisionsContext";
 
 interface VisionDetectionsContextValue extends UseVisionDetectionsReturn {
   /** Vision detections + mock detections combined (vision first). */
@@ -31,12 +33,14 @@ export function VisionDetectionsProvider({
   children: ReactNode;
 }) {
   const vision = useVisionDetections();
+  const { applyDecisions } = useReviewDecisions();
 
   const isConfigured = useMemo(() => isVisionConfigured(), []);
 
   const allDetections = useMemo(
-    () => [...vision.visionDetections, ...mockDetections],
-    [vision.visionDetections],
+    () =>
+      applyDecisions([...vision.visionDetections, ...mockDetections]),
+    [vision.visionDetections, applyDecisions],
   );
 
   const value = useMemo<VisionDetectionsContextValue>(

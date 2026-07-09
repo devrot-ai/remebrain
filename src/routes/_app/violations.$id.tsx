@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowLeft, Check, X, AlertTriangle, Download } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, Check, X, AlertTriangle, Download, Clock } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
 import { SoftCard } from "@/components/soft/SoftCard";
 import { SoftBadge } from "@/components/soft/SoftBadge";
@@ -10,6 +11,7 @@ import { detections } from "@/lib/mock/data";
 import { isVisionDetection } from "@/lib/vision/parser";
 import type { VisionDetection } from "@/lib/vision/parser";
 import { useVisionDetectionsContext } from "@/hooks/VisionDetectionsContext";
+import { useReviewDecisions } from "@/hooks/ReviewDecisionsContext";
 import { ViolationPreview } from "@/components/ViolationPreview";
 
 export const Route = createFileRoute("/_app/violations/$id")({
@@ -290,31 +292,141 @@ function ViolationDetail() {
             </div>
           </SoftCard>
 
-          <SoftCard>
-            <div className="text-[11px] uppercase tracking-widest text-muted-foreground mb-3">
-              Officer decision
-            </div>
-            <div className="grid grid-cols-1 gap-2 mb-3">
-              <SoftButton variant="success" icon={<Check className="h-4 w-4" />}>
-                Approve violation
-              </SoftButton>
-              <SoftButton variant="danger" icon={<X className="h-4 w-4" />}>
-                Reject
-              </SoftButton>
-              <SoftButton icon={<AlertTriangle className="h-4 w-4" />}>
-                Mark false positive
-              </SoftButton>
-            </div>
-            <label className="text-[10px] uppercase text-muted-foreground">
-              Officer notes
-            </label>
-            <SoftInput placeholder="Add optional notes…" className="mt-1" />
-            <SoftButton variant="primary" className="mt-4 w-full" icon={<Download className="h-4 w-4" />}>
-              Download evidence pack
-            </SoftButton>
-          </SoftCard>
+          <ViolationDetailDecisionPanel detectionId={d.id} />
         </div>
       </div>
     </>
+  );
+}
+
+/** Officer decision panel with working actions and decision log. */
+function ViolationDetailDecisionPanel({
+  detectionId,
+}: {
+  detectionId: string;
+}) {
+  const { decide, getDecision } = useReviewDecisions();
+  const [notes, setNotes] = useState("");
+  const decision = getDecision(detectionId);
+
+  const handleAction = (action: "approved" | "rejected" | "false_positive") => {
+    decide(detectionId, action, notes.trim() || undefined);
+    setNotes("");
+  };
+
+  return (
+    <SoftCard>
+      <div className="text-[11px] uppercase tracking-widest text-muted-foreground mb-3">
+        Officer decision
+      </div>
+
+      {decision ? (
+        /* ── Decision recorded ── */
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div
+            className={`soft-pressed rounded-[20px] p-5 text-center mb-3 ${
+              decision.action === "approved"
+                ? "text-brand-green"
+                : decision.action === "rejected"
+                  ? "text-brand-red"
+                  : "text-brand-blue"
+            }`}
+          >
+            <div className="h-12 w-12 rounded-2xl soft-raised-sm grid place-items-center mx-auto mb-3">
+              {decision.action === "approved" ? (
+                <Check className="h-6 w-6" />
+              ) : decision.action === "rejected" ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <AlertTriangle className="h-6 w-6" />
+              )}
+            </div>
+            <div className="text-lg font-black uppercase tracking-wider">
+              {decision.action === "approved"
+                ? "Approved"
+                : decision.action === "rejected"
+                  ? "Rejected"
+                  : "False Positive"}
+            </div>
+            <div className="flex items-center justify-center gap-1 mt-2 text-xs text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              {new Date(decision.timestamp).toLocaleString(undefined, {
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+              })}
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-1">
+              by {decision.officerName}
+            </div>
+            {decision.notes && (
+              <div className="soft-pressed-sm rounded-xl p-3 mt-3 text-xs text-left text-muted-foreground">
+                <span className="font-bold text-foreground">Notes: </span>
+                {decision.notes}
+              </div>
+            )}
+          </div>
+
+          {/* Allow changing decision */}
+          <button
+            onClick={() => decide(detectionId, "approved")}
+            className="w-full text-[11px] text-muted-foreground hover:text-foreground transition-colors text-center py-1"
+            style={{ display: "none" }}
+          >
+            Change decision
+          </button>
+        </motion.div>
+      ) : (
+        /* ── Pending — show action buttons ── */
+        <>
+          <div className="grid grid-cols-1 gap-2 mb-3">
+            <SoftButton
+              variant="success"
+              icon={<Check className="h-4 w-4" />}
+              onClick={() => handleAction("approved")}
+            >
+              Approve violation
+            </SoftButton>
+            <SoftButton
+              variant="danger"
+              icon={<X className="h-4 w-4" />}
+              onClick={() => handleAction("rejected")}
+            >
+              Reject
+            </SoftButton>
+            <SoftButton
+              icon={<AlertTriangle className="h-4 w-4" />}
+              onClick={() => handleAction("false_positive")}
+            >
+              Mark false positive
+            </SoftButton>
+          </div>
+          <label className="text-[10px] uppercase text-muted-foreground">
+            Officer notes
+          </label>
+          <SoftInput
+            placeholder="Add optional notes…"
+            className="mt-1"
+            value={notes}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setNotes(e.target.value)
+            }
+          />
+          <SoftButton
+            variant="primary"
+            className="mt-4 w-full"
+            icon={<Download className="h-4 w-4" />}
+          >
+            Download evidence pack
+          </SoftButton>
+        </>
+      )}
+    </SoftCard>
   );
 }

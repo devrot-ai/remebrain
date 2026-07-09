@@ -1,15 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Check, X, AlertTriangle, ChevronDown, ChevronUp, FileText } from "lucide-react";
+import { Check, X, AlertTriangle, ChevronDown, ChevronUp, FileText, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TopBar } from "@/components/layout/TopBar";
 import { SoftCard } from "@/components/soft/SoftCard";
 import { SoftBadge } from "@/components/soft/SoftBadge";
 import { SoftButton } from "@/components/soft/SoftButton";
 import { useVisionDetectionsContext } from "@/hooks/VisionDetectionsContext";
+import { useReviewDecisions } from "@/hooks/ReviewDecisionsContext";
 import { isVisionDetection } from "@/lib/vision/parser";
 import { ViolationPreview } from "@/components/ViolationPreview";
 import type { Detection } from "@/lib/mock/data";
+import type { ReviewAction } from "@/hooks/ReviewDecisionsContext";
 
 export const Route = createFileRoute("/_app/review")({
   head: () => ({
@@ -27,8 +29,14 @@ export const Route = createFileRoute("/_app/review")({
 /** Individual review card with expandable violation preview. */
 function ReviewCard({ d, index }: { d: Detection; index: number }) {
   const [showPreview, setShowPreview] = useState(false);
+  const { decide, getDecision } = useReviewDecisions();
   const isVision = isVisionDetection(d);
   const visionMeta = isVision ? d.__visionMeta : null;
+  const decision = getDecision(d.id);
+
+  const handleAction = (action: ReviewAction) => {
+    decide(d.id, action);
+  };
 
   return (
     <motion.div
@@ -121,17 +129,80 @@ function ReviewCard({ d, index }: { d: Detection; index: number }) {
           )}
         </AnimatePresence>
 
-        <div className="grid grid-cols-3 gap-2">
-          <SoftButton variant="success" size="sm" icon={<Check className="h-3.5 w-3.5" />}>
-            Approve
-          </SoftButton>
-          <SoftButton variant="danger" size="sm" icon={<X className="h-3.5 w-3.5" />}>
-            Reject
-          </SoftButton>
-          <SoftButton size="sm" icon={<AlertTriangle className="h-3.5 w-3.5" />}>
-            More
-          </SoftButton>
-        </div>
+        {decision ? (
+          /* ── Decision has been made — show outcome ── */
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.25 }}
+          >
+            <div
+              className={`soft-pressed-sm rounded-[20px] p-4 text-center ${
+                decision.action === "approved"
+                  ? "text-brand-green"
+                  : decision.action === "rejected"
+                    ? "text-brand-red"
+                    : "text-brand-blue"
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2 mb-1">
+                {decision.action === "approved" ? (
+                  <Check className="h-4 w-4" />
+                ) : decision.action === "rejected" ? (
+                  <X className="h-4 w-4" />
+                ) : (
+                  <AlertTriangle className="h-4 w-4" />
+                )}
+                <span className="text-sm font-black uppercase tracking-wider">
+                  {decision.action === "approved"
+                    ? "Approved"
+                    : decision.action === "rejected"
+                      ? "Rejected"
+                      : "False Positive"}
+                </span>
+              </div>
+              <div className="flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
+                <Clock className="h-2.5 w-2.5" />
+                {new Date(decision.timestamp).toLocaleString(undefined, {
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                })}
+                <span className="mx-0.5">·</span>
+                {decision.officerName}
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          /* ── Pending — show action buttons ── */
+          <div className="grid grid-cols-3 gap-2">
+            <SoftButton
+              variant="success"
+              size="sm"
+              icon={<Check className="h-3.5 w-3.5" />}
+              onClick={() => handleAction("approved")}
+            >
+              Approve
+            </SoftButton>
+            <SoftButton
+              variant="danger"
+              size="sm"
+              icon={<X className="h-3.5 w-3.5" />}
+              onClick={() => handleAction("rejected")}
+            >
+              Reject
+            </SoftButton>
+            <SoftButton
+              size="sm"
+              icon={<AlertTriangle className="h-3.5 w-3.5" />}
+              onClick={() => handleAction("false_positive")}
+            >
+              False+
+            </SoftButton>
+          </div>
+        )}
       </SoftCard>
     </motion.div>
   );
@@ -163,6 +234,18 @@ function ReviewPage() {
           <ReviewCard key={d.id} d={d} index={i} />
         ))}
       </div>
+
+      {queue.length === 0 && (
+        <SoftCard className="text-center !py-12">
+          <div className="soft-pressed h-16 w-16 rounded-3xl grid place-items-center mx-auto mb-3 text-brand-green">
+            <Check className="h-7 w-7" />
+          </div>
+          <h2 className="text-lg font-bold mb-1">All reviewed</h2>
+          <p className="text-sm text-muted-foreground">
+            No pending violations. New detections will appear here automatically.
+          </p>
+        </SoftCard>
+      )}
     </>
   );
 }

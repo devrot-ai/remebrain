@@ -14,6 +14,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppViolationsRouteImport } from './routes/_app/violations'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
+import { Route as AppReviewQueueRouteImport } from './routes/_app/review-queue'
 import { Route as AppReviewRouteImport } from './routes/_app/review'
 import { Route as AppReportsRouteImport } from './routes/_app/reports'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
@@ -45,6 +46,11 @@ const AppViolationsRoute = AppViolationsRouteImport.update({
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReviewQueueRoute = AppReviewQueueRouteImport.update({
+  id: '/review-queue',
+  path: '/review-queue',
   getParentRoute: () => AppRoute,
 } as any)
 const AppReviewRoute = AppReviewRouteImport.update({
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AppProfileRoute
   '/reports': typeof AppReportsRoute
   '/review': typeof AppReviewRoute
+  '/review-queue': typeof AppReviewQueueRoute
   '/settings': typeof AppSettingsRoute
   '/violations': typeof AppViolationsRouteWithChildren
   '/violations/$id': typeof AppViolationsIdRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AppProfileRoute
   '/reports': typeof AppReportsRoute
   '/review': typeof AppReviewRoute
+  '/review-queue': typeof AppReviewQueueRoute
   '/settings': typeof AppSettingsRoute
   '/violations': typeof AppViolationsRouteWithChildren
   '/': typeof AppIndexRoute
@@ -127,6 +135,7 @@ export interface FileRoutesById {
   '/_app/profile': typeof AppProfileRoute
   '/_app/reports': typeof AppReportsRoute
   '/_app/review': typeof AppReviewRoute
+  '/_app/review-queue': typeof AppReviewQueueRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/violations': typeof AppViolationsRouteWithChildren
   '/_app/': typeof AppIndexRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reports'
     | '/review'
+    | '/review-queue'
     | '/settings'
     | '/violations'
     | '/violations/$id'
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reports'
     | '/review'
+    | '/review-queue'
     | '/settings'
     | '/violations'
     | '/'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/_app/profile'
     | '/_app/reports'
     | '/_app/review'
+    | '/_app/review-queue'
     | '/_app/settings'
     | '/_app/violations'
     | '/_app/'
@@ -218,6 +230,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/review-queue': {
+      id: '/_app/review-queue'
+      path: '/review-queue'
+      fullPath: '/review-queue'
+      preLoaderRoute: typeof AppReviewQueueRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/review': {
@@ -299,6 +318,7 @@ interface AppRouteChildren {
   AppProfileRoute: typeof AppProfileRoute
   AppReportsRoute: typeof AppReportsRoute
   AppReviewRoute: typeof AppReviewRoute
+  AppReviewQueueRoute: typeof AppReviewQueueRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppViolationsRoute: typeof AppViolationsRouteWithChildren
   AppIndexRoute: typeof AppIndexRoute
@@ -312,6 +332,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppProfileRoute: AppProfileRoute,
   AppReportsRoute: AppReportsRoute,
   AppReviewRoute: AppReviewRoute,
+  AppReviewQueueRoute: AppReviewQueueRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppViolationsRoute: AppViolationsRouteWithChildren,
   AppIndexRoute: AppIndexRoute,
@@ -326,13 +347,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
