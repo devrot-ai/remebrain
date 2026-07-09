@@ -22,6 +22,7 @@ import { Route as AppDetectionsRouteImport } from './routes/_app/detections'
 import { Route as AppCamerasRouteImport } from './routes/_app/cameras'
 import { Route as AppAnalyticsRouteImport } from './routes/_app/analytics'
 import { Route as AppViolationsIdRouteImport } from './routes/_app/violations.$id'
+import { Route as AppCamerasIdRouteImport } from './routes/_app/cameras.$id'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -87,12 +88,17 @@ const AppViolationsIdRoute = AppViolationsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AppViolationsRoute,
 } as any)
+const AppCamerasIdRoute = AppCamerasIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppCamerasRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/auth': typeof AuthRoute
   '/analytics': typeof AppAnalyticsRoute
-  '/cameras': typeof AppCamerasRoute
+  '/cameras': typeof AppCamerasRouteWithChildren
   '/detections': typeof AppDetectionsRoute
   '/heatmap': typeof AppHeatmapRoute
   '/profile': typeof AppProfileRoute
@@ -100,12 +106,13 @@ export interface FileRoutesByFullPath {
   '/review': typeof AppReviewRoute
   '/settings': typeof AppSettingsRoute
   '/violations': typeof AppViolationsRouteWithChildren
+  '/cameras/$id': typeof AppCamerasIdRoute
   '/violations/$id': typeof AppViolationsIdRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/analytics': typeof AppAnalyticsRoute
-  '/cameras': typeof AppCamerasRoute
+  '/cameras': typeof AppCamerasRouteWithChildren
   '/detections': typeof AppDetectionsRoute
   '/heatmap': typeof AppHeatmapRoute
   '/profile': typeof AppProfileRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AppSettingsRoute
   '/violations': typeof AppViolationsRouteWithChildren
   '/': typeof AppIndexRoute
+  '/cameras/$id': typeof AppCamerasIdRoute
   '/violations/$id': typeof AppViolationsIdRoute
 }
 export interface FileRoutesById {
@@ -121,7 +129,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/_app/analytics': typeof AppAnalyticsRoute
-  '/_app/cameras': typeof AppCamerasRoute
+  '/_app/cameras': typeof AppCamerasRouteWithChildren
   '/_app/detections': typeof AppDetectionsRoute
   '/_app/heatmap': typeof AppHeatmapRoute
   '/_app/profile': typeof AppProfileRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/_app/settings': typeof AppSettingsRoute
   '/_app/violations': typeof AppViolationsRouteWithChildren
   '/_app/': typeof AppIndexRoute
+  '/_app/cameras/$id': typeof AppCamerasIdRoute
   '/_app/violations/$id': typeof AppViolationsIdRoute
 }
 export interface FileRouteTypes {
@@ -146,6 +155,7 @@ export interface FileRouteTypes {
     | '/review'
     | '/settings'
     | '/violations'
+    | '/cameras/$id'
     | '/violations/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/violations'
     | '/'
+    | '/cameras/$id'
     | '/violations/$id'
   id:
     | '__root__'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/_app/settings'
     | '/_app/violations'
     | '/_app/'
+    | '/_app/cameras/$id'
     | '/_app/violations/$id'
   fileRoutesById: FileRoutesById
 }
@@ -276,8 +288,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppViolationsIdRouteImport
       parentRoute: typeof AppViolationsRoute
     }
+    '/_app/cameras/$id': {
+      id: '/_app/cameras/$id'
+      path: '/$id'
+      fullPath: '/cameras/$id'
+      preLoaderRoute: typeof AppCamerasIdRouteImport
+      parentRoute: typeof AppCamerasRoute
+    }
   }
 }
+
+interface AppCamerasRouteChildren {
+  AppCamerasIdRoute: typeof AppCamerasIdRoute
+}
+
+const AppCamerasRouteChildren: AppCamerasRouteChildren = {
+  AppCamerasIdRoute: AppCamerasIdRoute,
+}
+
+const AppCamerasRouteWithChildren = AppCamerasRoute._addFileChildren(
+  AppCamerasRouteChildren,
+)
 
 interface AppViolationsRouteChildren {
   AppViolationsIdRoute: typeof AppViolationsIdRoute
@@ -293,7 +324,7 @@ const AppViolationsRouteWithChildren = AppViolationsRoute._addFileChildren(
 
 interface AppRouteChildren {
   AppAnalyticsRoute: typeof AppAnalyticsRoute
-  AppCamerasRoute: typeof AppCamerasRoute
+  AppCamerasRoute: typeof AppCamerasRouteWithChildren
   AppDetectionsRoute: typeof AppDetectionsRoute
   AppHeatmapRoute: typeof AppHeatmapRoute
   AppProfileRoute: typeof AppProfileRoute
@@ -306,7 +337,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAnalyticsRoute: AppAnalyticsRoute,
-  AppCamerasRoute: AppCamerasRoute,
+  AppCamerasRoute: AppCamerasRouteWithChildren,
   AppDetectionsRoute: AppDetectionsRoute,
   AppHeatmapRoute: AppHeatmapRoute,
   AppProfileRoute: AppProfileRoute,
@@ -326,13 +357,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

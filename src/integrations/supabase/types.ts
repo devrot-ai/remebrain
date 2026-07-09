@@ -14,16 +14,272 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cameras: {
+        Row: {
+          active: boolean
+          capture_interval_sec: number
+          confidence_threshold: number
+          created_at: string
+          id: string
+          lat: number | null
+          lng: number | null
+          location: string | null
+          name: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          capture_interval_sec?: number
+          confidence_threshold?: number
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          location?: string | null
+          name: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          capture_interval_sec?: number
+          confidence_threshold?: number
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          location?: string | null
+          name?: string
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      detections: {
+        Row: {
+          camera_id: string | null
+          confidence: number
+          created_at: string
+          frame_id: string | null
+          id: string
+          latency_ms: number
+          litter_detected: boolean
+          litter_type: string | null
+          model: string
+          owner_id: string
+          plate_guess: string | null
+          provider: string
+          raw: string | null
+          reasoning: string | null
+          severity: string
+          vehicle: string | null
+          vehicle_color: string | null
+        }
+        Insert: {
+          camera_id?: string | null
+          confidence?: number
+          created_at?: string
+          frame_id?: string | null
+          id?: string
+          latency_ms?: number
+          litter_detected?: boolean
+          litter_type?: string | null
+          model: string
+          owner_id: string
+          plate_guess?: string | null
+          provider: string
+          raw?: string | null
+          reasoning?: string | null
+          severity?: string
+          vehicle?: string | null
+          vehicle_color?: string | null
+        }
+        Update: {
+          camera_id?: string | null
+          confidence?: number
+          created_at?: string
+          frame_id?: string | null
+          id?: string
+          latency_ms?: number
+          litter_detected?: boolean
+          litter_type?: string | null
+          model?: string
+          owner_id?: string
+          plate_guess?: string | null
+          provider?: string
+          raw?: string | null
+          reasoning?: string | null
+          severity?: string
+          vehicle?: string | null
+          vehicle_color?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "detections_camera_id_fkey"
+            columns: ["camera_id"]
+            isOneToOne: false
+            referencedRelation: "cameras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "detections_frame_id_fkey"
+            columns: ["frame_id"]
+            isOneToOne: false
+            referencedRelation: "frames"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      frames: {
+        Row: {
+          camera_id: string | null
+          captured_at: string
+          created_at: string
+          id: string
+          owner_id: string
+          storage_path: string
+        }
+        Insert: {
+          camera_id?: string | null
+          captured_at?: string
+          created_at?: string
+          id?: string
+          owner_id: string
+          storage_path: string
+        }
+        Update: {
+          camera_id?: string | null
+          captured_at?: string
+          created_at?: string
+          id?: string
+          owner_id?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "frames_camera_id_fkey"
+            columns: ["camera_id"]
+            isOneToOne: false
+            referencedRelation: "cameras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      violations: {
+        Row: {
+          camera_id: string | null
+          created_at: string
+          detection_id: string | null
+          id: string
+          notes: string | null
+          owner_id: string
+          plate_guess: string | null
+          severity: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          camera_id?: string | null
+          created_at?: string
+          detection_id?: string | null
+          id?: string
+          notes?: string | null
+          owner_id: string
+          plate_guess?: string | null
+          severity?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          camera_id?: string | null
+          created_at?: string
+          detection_id?: string | null
+          id?: string
+          notes?: string | null
+          owner_id?: string
+          plate_guess?: string | null
+          severity?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "violations_camera_id_fkey"
+            columns: ["camera_id"]
+            isOneToOne: false
+            referencedRelation: "cameras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "violations_detection_id_fkey"
+            columns: ["detection_id"]
+            isOneToOne: false
+            referencedRelation: "detections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "reviewer" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +406,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "reviewer", "user"],
+    },
   },
 } as const

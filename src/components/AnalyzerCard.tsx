@@ -4,7 +4,8 @@ import { toast } from "sonner";
 import { SoftCard } from "@/components/soft/SoftCard";
 import { SoftBadge } from "@/components/soft/SoftBadge";
 import { SoftButton } from "@/components/soft/SoftButton";
-import { analyzeImage } from "@/lib/ai/analyzeImage";
+import { analyzeAndPersist } from "@/lib/ai/persist";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAiSettings, activeOllamaUrl } from "@/lib/ai/settings";
 import type { AnalysisResult } from "@/lib/ai/types";
 
@@ -36,17 +37,21 @@ export function AnalyzerCard() {
     }
   }, []);
 
+  const qc = useQueryClient();
   const onRun = useCallback(async () => {
     if (!imageUrl || busy) return;
     setBusy(true);
     setError(null);
     setResult(null);
     try {
-      const r = await analyzeImage(imageUrl);
-      setResult(r);
+      const r = await analyzeAndPersist(imageUrl, { uploadFrame: true });
+      setResult(r.analysis);
+      qc.invalidateQueries({ queryKey: ["detections"] });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      qc.invalidateQueries({ queryKey: ["violations"] });
       toast.success(
-        r.analysis.litter_detected
-          ? `Violation detected · ${(r.analysis.confidence * 100).toFixed(0)}%`
+        r.analysis.analysis.litter_detected
+          ? `Violation saved · ${(r.analysis.analysis.confidence * 100).toFixed(0)}%`
           : "No violation detected",
       );
     } catch (e) {
@@ -56,7 +61,7 @@ export function AnalyzerCard() {
     } finally {
       setBusy(false);
     }
-  }, [imageUrl, busy]);
+  }, [imageUrl, busy, qc]);
 
   const providerLabel =
     settings.provider === "lovable"

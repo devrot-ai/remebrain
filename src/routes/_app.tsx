@@ -1,8 +1,14 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { AiInsightsPanel } from "@/components/layout/AiInsightsPanel";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_app")({
+  ssr: false,
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) throw redirect({ to: "/auth" });
+  },
   component: AppShell,
 });
 
