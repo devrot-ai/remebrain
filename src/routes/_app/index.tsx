@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
   Camera as CameraIcon,
-  Gauge,
   ShieldAlert,
   UserCheck,
-  Percent,
-  Heart,
+  Gauge,
   ArrowRight,
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -14,74 +14,110 @@ import { SoftCard } from "@/components/soft/SoftCard";
 import { SoftBadge } from "@/components/soft/SoftBadge";
 import { CountUp } from "@/components/soft/CountUp";
 import { PipelineFlow } from "@/components/PipelineFlow";
-import { cameras, detections } from "@/lib/mock/data";
+import { dashboardStats } from "@/lib/violations.functions";
+import { listDetections } from "@/lib/detections.functions";
 
 export const Route = createFileRoute("/_app/")({
   head: () => ({
     meta: [
-      { title: "LitterCam AI — Smart City Command Center" },
+      { title: "LitterCam AI — Command Center" },
       {
         name: "description",
-        content:
-          "AI-assisted traffic litter enforcement dashboard. All violations reviewed by authorized officers.",
-      },
-      { property: "og:title", content: "LitterCam AI — Smart City Command Center" },
-      {
-        property: "og:description",
-        content: "Human-in-the-loop AI enforcement for cleaner streets.",
+        content: "AI-assisted traffic litter enforcement dashboard.",
       },
     ],
   }),
   component: Dashboard,
 });
 
-const stats = [
-  { icon: CameraIcon, label: "Active Cameras", value: 128, tone: "blue" as const, suffix: "" },
-  { icon: Gauge, label: "AI Accuracy", value: 96.4, decimals: 1, tone: "green" as const, suffix: "%" },
-  { icon: ShieldAlert, label: "Today's Violations", value: 214, tone: "red" as const, suffix: "" },
-  { icon: UserCheck, label: "Pending Reviews", value: 37, tone: "gold" as const, suffix: "" },
-  { icon: Percent, label: "False Positive Rate", value: 2.1, decimals: 1, tone: "gold" as const, suffix: "%" },
-  { icon: Heart, label: "System Health", value: 99.9, decimals: 1, tone: "green" as const, suffix: "%" },
-];
-
 const toneClass = {
   blue: "text-brand-blue",
   green: "text-brand-green",
   red: "text-brand-red",
   gold: "text-brand-gold",
-};
+} as const;
 
 function Dashboard() {
-  const recent = detections.slice(0, 5);
+  const statsFn = useServerFn(dashboardStats);
+  const listDet = useServerFn(listDetections);
+
+  const { data: stats } = useQuery({
+    queryKey: ["dashboard-stats"],
+    queryFn: () => statsFn(),
+    refetchInterval: 15000,
+  });
+  const { data: recent = [] } = useQuery({
+    queryKey: ["detections", "recent"],
+    queryFn: () => listDet({ data: { limit: 6 } }),
+    refetchInterval: 10000,
+  });
+
+  const kpis = [
+    {
+      icon: CameraIcon,
+      label: "Cameras online",
+      value: stats?.camerasOnline ?? 0,
+      suffix: stats ? ` / ${stats.cameras}` : "",
+      tone: "blue" as const,
+    },
+    {
+      icon: ShieldAlert,
+      label: "Today's violations",
+      value: stats?.todayViolations ?? 0,
+      tone: "red" as const,
+      suffix: "",
+    },
+    {
+      icon: UserCheck,
+      label: "Pending review",
+      value: stats?.pending ?? 0,
+      tone: "gold" as const,
+      suffix: "",
+    },
+    {
+      icon: Gauge,
+      label: "Total detections",
+      value: stats?.totalDetections ?? 0,
+      tone: "green" as const,
+      suffix: "",
+    },
+  ];
+
   return (
     <>
       <TopBar
-        title="City surveillance overview"
-        subtitle={`${cameras.filter((c) => c.status === "online").length} of ${cameras.length} camera zones online`}
+        title="Command center"
+        subtitle={
+          stats ? `${stats.camerasOnline} of ${stats.cameras} cameras active` : "Loading…"
+        }
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
-        {stats.map((s, i) => {
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+        {kpis.map((s, i) => {
           const Icon = s.icon;
           return (
             <motion.div
               key={s.label}
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: i * 0.05 }}
+              transition={{ duration: 0.3, delay: i * 0.04 }}
             >
               <SoftCard hover className="!p-5">
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`soft-pressed-sm h-9 w-9 rounded-xl grid place-items-center ${toneClass[s.tone]}`}>
+                  <div
+                    className={`soft-pressed-sm h-9 w-9 rounded-xl grid place-items-center ${toneClass[s.tone]}`}
+                  >
                     <Icon className="h-4 w-4" strokeWidth={2.25} />
                   </div>
-                  <div className={`h-1.5 w-1.5 rounded-full ${toneClass[s.tone]} bg-current opacity-60`} />
                 </div>
                 <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold">
                   {s.label}
                 </div>
-                <div className="text-[28px] leading-none font-black tracking-tight text-foreground mt-2 tabular-nums">
-                  <CountUp value={s.value} decimals={s.decimals ?? 0} suffix={s.suffix} />
+                <div className="text-[28px] leading-none font-black tracking-tight mt-2 tabular-nums">
+                  <CountUp value={s.value} />
+                  {s.suffix && (
+                    <span className="text-base text-muted-foreground">{s.suffix}</span>
+                  )}
                 </div>
               </SoftCard>
             </motion.div>
@@ -92,13 +128,13 @@ function Dashboard() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
         <SoftCard className="xl:col-span-2">
           <div className="flex items-start justify-between mb-4 gap-4">
-            <div className="min-w-0">
+            <div>
               <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-                AI Detection Pipeline
+                AI detection pipeline
               </div>
-              <h2 className="text-lg font-bold">Live 12-stage inference flow</h2>
+              <h2 className="text-lg font-bold">Live inference flow</h2>
             </div>
-            <SoftBadge tone="green">Processing</SoftBadge>
+            <SoftBadge tone="green">Ready</SoftBadge>
           </div>
           <PipelineFlow />
         </SoftCard>
@@ -107,53 +143,29 @@ function Dashboard() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-                Review Queue
+                Get started
               </div>
-              <h2 className="text-lg font-bold">Awaiting officer decision</h2>
+              <h2 className="text-lg font-bold">Next step</h2>
             </div>
-            <Link
-              to="/review"
-              className="soft-raised-sm soft-press rounded-2xl px-3 py-2 text-xs font-bold text-brand-blue inline-flex items-center gap-1"
-            >
-              Open <ArrowRight className="h-3 w-3" />
-            </Link>
           </div>
-          <div className="soft-pressed rounded-[24px] p-6 flex items-center justify-center flex-col">
-            <div className="text-[64px] leading-none font-black tracking-tight text-foreground tabular-nums">
-              <CountUp value={37} />
-            </div>
-            <div className="text-xs text-muted-foreground mt-2 uppercase tracking-[0.14em] font-semibold">
-              Pending violations
-            </div>
-            <div className="mt-5 grid grid-cols-3 gap-3 text-center w-full">
-              <div className="flex flex-col items-center gap-1">
-                <div className="text-xl font-black text-foreground tabular-nums">
-                  <CountUp value={182} />
-                </div>
-                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-                  <span className="h-1.5 w-1.5 rounded-full bg-brand-green" />
-                  Approved
-                </div>
-              </div>
-              <div className="flex flex-col items-center gap-1">
-                <div className="text-xl font-black text-foreground tabular-nums">
-                  <CountUp value={9} />
-                </div>
-                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-                  <span className="h-1.5 w-1.5 rounded-full bg-brand-red" />
-                  Rejected
-                </div>
-              </div>
-              <div className="flex flex-col items-center gap-1">
-                <div className="text-xl font-black text-foreground tabular-nums">
-                  <CountUp value={4} />
-                </div>
-                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-                  <span className="h-1.5 w-1.5 rounded-full bg-brand-blue" />
-                  False+
-                </div>
-              </div>
-            </div>
+          <div className="soft-pressed rounded-[24px] p-6 text-sm text-muted-foreground leading-relaxed">
+            {stats?.cameras === 0 ? (
+              <>
+                Add your first camera on the <b>Cameras</b> page and open its live view to
+                start capturing frames from your webcam.
+              </>
+            ) : (
+              <>
+                Open the <b>Cameras</b> page, pick a camera, and hit <b>Start analyzing</b>{" "}
+                to begin real-time detection.
+              </>
+            )}
+            <Link
+              to="/cameras"
+              className="soft-raised-sm soft-press rounded-2xl px-4 py-2 text-xs font-bold text-brand-blue inline-flex items-center gap-1 mt-4"
+            >
+              Go to cameras <ArrowRight className="h-3 w-3" />
+            </Link>
           </div>
         </SoftCard>
       </div>
@@ -162,7 +174,7 @@ function Dashboard() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-              Latest Detections
+              Latest detections
             </div>
             <h2 className="text-lg font-bold">Freshly captured events</h2>
           </div>
@@ -173,32 +185,38 @@ function Dashboard() {
             View feed <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {recent.map((d) => (
-            <Link
-              key={d.id}
-              to="/violations/$id"
-              params={{ id: d.id }}
-              className="soft-raised-sm soft-hover rounded-[24px] p-4 flex gap-4"
-            >
-              <div className="soft-pressed rounded-2xl h-16 w-24 shrink-0 grid place-items-center text-xs font-black text-brand-blue">
-                {d.plate}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="font-bold text-sm truncate">{d.litter}</div>
-                <div className="text-xs text-muted-foreground truncate">
-                  {d.color} {d.vehicle} · {d.cameraName}
+        {recent.length === 0 ? (
+          <div className="text-center py-6 text-sm text-muted-foreground">
+            No detections yet — start a camera to see events here.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {recent.map((d) => (
+              <div
+                key={d.id}
+                className="soft-raised-sm rounded-[24px] p-4 flex gap-4"
+              >
+                <div className="soft-pressed rounded-2xl h-16 w-24 shrink-0 grid place-items-center text-xs font-black text-brand-blue">
+                  {d.plate_guess || "—"}
                 </div>
-                <div className="flex gap-1.5 mt-2">
-                  <SoftBadge tone={d.status === "pending" ? "gold" : d.status === "approved" ? "green" : "red"}>
-                    {d.status}
-                  </SoftBadge>
-                  <SoftBadge tone="blue">{(d.confidence * 100).toFixed(0)}%</SoftBadge>
+                <div className="min-w-0 flex-1">
+                  <div className="font-bold text-sm truncate">
+                    {d.litter_type || (d.litter_detected ? "Litter" : "No litter")}
+                  </div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {d.vehicle_color} {d.vehicle}
+                  </div>
+                  <div className="flex gap-1.5 mt-2">
+                    <SoftBadge tone={d.litter_detected ? "red" : "green"}>
+                      {d.litter_detected ? "violation" : "clean"}
+                    </SoftBadge>
+                    <SoftBadge tone="blue">{(d.confidence * 100).toFixed(0)}%</SoftBadge>
+                  </div>
                 </div>
               </div>
-            </Link>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </SoftCard>
     </>
   );
