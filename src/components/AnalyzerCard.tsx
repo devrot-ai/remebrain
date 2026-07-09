@@ -4,7 +4,8 @@ import { toast } from "sonner";
 import { SoftCard } from "@/components/soft/SoftCard";
 import { SoftBadge } from "@/components/soft/SoftBadge";
 import { SoftButton } from "@/components/soft/SoftButton";
-import { analyzeImage } from "@/lib/ai/analyzeImage";
+import { analyzeAndPersist } from "@/lib/ai/persist";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAiSettings, activeOllamaUrl } from "@/lib/ai/settings";
 import type { AnalysisResult } from "@/lib/ai/types";
 
