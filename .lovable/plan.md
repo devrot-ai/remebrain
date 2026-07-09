@@ -1,76 +1,98 @@
-## LitterCam AI — Full Frontend (Mock Data, Soft UI / Neumorphism)
 
-Build a premium smart-city surveillance dashboard entirely on the frontend (TanStack Start + React). All AI, video, and violation data is simulated. No backend.
+# M1 + M2 — Persistence & Live Ingestion
 
-### Design system
+Turn LitterCam from a mock UI + one-off analyzer into a real system: signed-in users can register cameras, stream frames from a webcam, auto-analyze every N seconds, and see all detections/violations persist across sessions.
 
-- Background `#e8e8e8`, dark-gray text (no pure black), Nunito font (loaded via `<link>` in `__root.tsx`).
-- Semantic tokens in `src/styles.css` (`@theme`) for background, surface, text, muted, and accents blue / green / soft-red / gold — all in OKLCH.
-- Reusable Soft UI utilities via `@utility`:
-  - `soft-raised` → `12px 12px 24px #c8c8c8, -12px -12px 24px #ffffff`
-  - `soft-pressed` → inset variant
-  - `soft-hover` → subtle lift on hover, 250ms ease transitions
-- Radii: cards 30px, buttons 20px, inputs 18px. Generous whitespace.
-- Shared primitives in `src/components/soft/`: `SoftCard`, `SoftButton`, `SoftInput`, `SoftIconButton`, `SoftStat`, `SoftBadge`, `SoftToggle`.
+## Scope
 
-### Layout
+**In:** DB schema, RLS, server fns for CRUD, webcam capture UI, auto-sample loop, wiring existing pages to real data.
+**Out (later milestones):** review/approval workflow (M3), Ollama server proxy, PDF reports, notifications, RTSP/edge-device ingestion.
 
-`src/routes/_app.tsx` = shell with:
-- Left sidebar (collapsible on tablet, drawer on mobile) — nav items with active = raised, hover = lifted.
-- Main content (`<Outlet />`).
-- Right AI Insights panel (hidden < xl, toggleable).
+## 1. Database schema (single migration)
 
-### Routes (each with unique `head()` metadata)
+Tables in `public`, all with RLS + explicit GRANTs. All user-scoped by `owner_id = auth.uid()`.
 
-```
-/                → Dashboard (stat cards, mini pipeline, recent detections)
-/cameras         → Live Cameras grid (simulated feeds w/ animated SVG bounding boxes)
-/detections      → Detection Feed timeline
-/violations      → Violations list + details drawer/route
-/violations/$id  → Violation Details (video preview, trajectory, approve/reject)
-/review          → Human Review queue
-/analytics       → Charts (Recharts)
-/heatmap         → Stylized SVG city map with animated hotspots
-/reports         → Report generator (PDF/CSV/Excel export stubs)
-/settings        → Cameras, thresholds, notifications, officers, theme, API keys
-/profile         → Officer profile
+```text
+app_role (enum)          admin | reviewer | user
+user_roles               user_id, role  — required for future admin/review
+profiles                 id (=auth.uid), display_name, avatar_url
+cameras                  id, owner_id, name, location, lat, lng, active, created_at
+frames                   id, camera_id, owner_id, image_url (storage), captured_at
+detections               id, frame_id, camera_id, owner_id,
+                         provider, model, latency_ms,
+                         litter_detected, confidence, litter_type,
+                         vehicle, vehicle_color, plate_guess,
+                         severity, reasoning, raw, created_at
+violations               id, detection_id, camera_id, owner_id,
+                         status (pending|confirmed|dismissed),
+                         severity, plate_guess, created_at
 ```
 
-Root route redirects `/` into the `_app` shell containing Dashboard.
+- `has_role(uuid, app_role)` security-definer function (per user-roles rules).
+- RLS: users read/write their own rows (`owner_id = auth.uid()`); admins/reviewers get broader read via `has_role`.
+- Storage bucket `frames` (private) for captured images; RLS'd so users only read their own paths.
+- `updated_at` trigger where relevant.
+- `profiles` auto-created via `handle_new_user` trigger on `auth.users` insert.
 
-### Simulated AI
+## 2. Server functions (`src/lib/*.functions.ts`)
 
-- `src/lib/mock/` — deterministic mock generators for cameras, detections, violations, officers, analytics series.
-- `useLiveDetections()` hook: interval-driven state producing bounding boxes, tracker IDs, confidence, occasional "litter" flash events.
-- Camera "video" = looping CSS/SVG scene (road + moving vehicle rectangles) with overlay `<svg>` bounding boxes animated via Framer Motion. No real video assets required.
-- AI Pipeline visualization = 12-step vertical/horizontal flow, each step pulses as a mock frame progresses through it.
+All use `.middleware([requireSupabaseAuth])`.
 
-### Key components
+- `cameras.functions.ts` — `listCameras`, `createCamera`, `updateCamera`, `deleteCamera`.
+- `detections.functions.ts` — `listDetections({ cameraId?, limit, cursor })`, `getDetection(id)`, `saveDetection(payload)` (called after every analyze).
+- `violations.functions.ts` — `listViolations`, `getViolation(id)`, `createViolationFromDetection(detectionId)` (auto-called when `litter_detected && confidence >= threshold`).
+- `frames.functions.ts` — `createFrameUploadUrl()` returns a signed upload URL to storage, then `recordFrame({ camera_id, storage_path, captured_at })`.
 
-- `Sidebar`, `TopBar`, `AiInsightsPanel`
-- `StatCard` (animated count-up via simple RAF hook)
-- `CameraFeedCard` (SVG scene + overlays + glow on detection)
-- `PipelineFlow` (steps + connectors, active step glows)
-- `DetectionTimeline`, `DetectionCard`
-- `ViolationDetail` (video preview panel, trajectory SVG, action buttons, officer notes textarea)
-- `ReviewCard` (Approve / Reject / Needs More Evidence)
-- `CityHeatmap` (SVG grid of streets, red radial-gradient hotspots, camera pins, filter controls)
-- `AnalyticsCharts` (line / bar / donut via Recharts, styled with soft shadows)
+`analyze.functions.ts` stays as-is (Lovable AI Gateway call). New `analyzeAndPersist` client helper: upload frame → call analyzer → `saveDetection` → conditionally `createViolationFromDetection`.
 
-### Microinteractions
+## 3. UI wiring
 
-- Framer Motion: card mount fade+lift, hover lift, button press → inset, litter-detect glow (box-shadow keyframe), pulsing violation cards, animated map pins, count-up numbers, smooth chart draw.
+- **Cameras page (`_app/cameras.tsx`)**: real list from `listCameras`, "Add camera" dialog (name/location), delete/edit.
+- **New: Camera detail page `_app/cameras.$id.tsx`**:
+  - Left: live `<video>` webcam preview via `getUserMedia`.
+  - Controls: Start/Stop, capture interval (default 5s), provider badge.
+  - Loop: every N seconds → grab `<canvas>` frame → JPEG dataURL → `analyzeImage` → if kept, upload to storage + persist detection.
+  - Right: last 20 detections stream (live via TanStack Query invalidation).
+- **Dashboard (`_app/index.tsx`)**: counts (today/week) from real `detections` + `violations`, replace mock KPIs.
+- **Detections (`_app/detections.tsx`)**: paginated list from `listDetections`; keep AnalyzerCard for ad-hoc testing but also persist its result.
+- **Violations (`_app/violations.tsx` + `violations.$id.tsx`)**: real data from `listViolations` / `getViolation`.
+- All lists use `useSuspenseQuery` + `ensureQueryData` in loaders (project's canonical pattern).
 
-### Dependencies to add
+## 4. Auto-sampling loop details (technical)
 
-- `framer-motion`
-- `recharts`
-- `@fontsource/nunito` (or CDN link — will use `<link>` in root head per Tailwind v4 rules)
+- Runs only on the camera detail page while "Start" is active; cleared on unmount/stop.
+- Skips upload+save when previous call still in flight (single-flight).
+- Client-side gate: only persist when `confidence >= 0.35` OR `litter_detected === true`, to avoid DB spam from Gemini "no violation" frames. Configurable per camera.
+- Frame JPEG quality 0.7, max 1280px longest side, to stay under gateway payload limits and storage cost.
 
-### Out of scope (per user)
+## 5. Files touched / created
 
-- No backend, no auth, no database, no real video, no real AI models. Export buttons are stubs that trigger client-side CSV download of mock data; PDF/Excel show a toast.
+**New:** migration SQL; `src/lib/cameras.functions.ts`, `detections.functions.ts`, `violations.functions.ts`, `frames.functions.ts`; `src/routes/_app/cameras.$id.tsx`; `src/components/WebcamCaptureCard.tsx`; `src/lib/ai/persist.ts` (wrapper).
 
-### Deliverable
+**Edited:** `_app/cameras.tsx`, `_app/index.tsx`, `_app/detections.tsx`, `_app/violations.tsx`, `_app/violations.$id.tsx`, `AnalyzerCard.tsx` (persist result), `src/lib/mock/*` (removed once pages migrate).
 
-A single cohesive Soft UI dashboard covering every listed page with realistic mock data and lively simulated detections, ready to demo end-to-end.
+## 6. Order of work
+
+1. Migration (schema + RLS + grants + storage bucket + roles + profile trigger).
+2. Server functions for cameras + detections + frames + violations.
+3. Cameras page real CRUD.
+4. Camera detail page with webcam capture + auto-analyze + persist.
+5. Migrate Dashboard/Detections/Violations pages off mock.
+6. Delete unused mock modules.
+
+## 7. Assumptions / decisions I'm defaulting
+
+- Auth already works (Google + email) — reuse.
+- Confidence threshold **0.35** and interval **5s** are defaults, exposed in per-camera settings later.
+- Frames stored in Supabase Storage private bucket; signed URLs generated on read.
+- No cross-user visibility yet (owner-only). Admin/reviewer read paths are stubbed via `has_role` for M3.
+- Realtime updates via query invalidation on save, not Postgres realtime channels (simpler, enough for one active tab).
+
+## 8. Explicitly deferred
+
+- Approval/rejection queue and violation state transitions (M3).
+- Ollama server-side proxy (M4).
+- Aggregations for heatmap/reports/analytics pages — will still show mock or empty state after M1+M2; wired in a follow-up.
+- Edge-device / RTSP ingestion endpoint under `/api/public/*`.
+
+Approve to proceed with the migration first.
