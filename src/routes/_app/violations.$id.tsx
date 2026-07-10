@@ -2,11 +2,22 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Check, X } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { TopBar } from "@/components/layout/TopBar";
 import { SoftCard } from "@/components/soft/SoftCard";
 import { SoftBadge } from "@/components/soft/SoftBadge";
 import { SoftButton } from "@/components/soft/SoftButton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { getViolation, updateViolationStatus } from "@/lib/violations.functions";
 import { getFrameSignedUrl } from "@/lib/detections.functions";
 
@@ -60,6 +71,8 @@ function ViolationDetail() {
     },
   });
 
+  const [pending, setPending] = useState<"confirmed" | "dismissed" | null>(null);
+
   const mut = useMutation({
     mutationFn: (status: "confirmed" | "dismissed" | "pending") =>
       update({ data: { id, status } }),
@@ -68,7 +81,10 @@ function ViolationDetail() {
       qc.invalidateQueries({ queryKey: ["violation", id] });
       qc.invalidateQueries({ queryKey: ["violations"] });
     },
+    onSettled: () => setPending(null),
   });
+
+  const alreadyReviewed = v?.status === "confirmed" || v?.status === "dismissed";
 
   if (isLoading || !v) {
     return (
@@ -152,24 +168,30 @@ function ViolationDetail() {
             <div className="flex flex-col gap-2">
               <SoftButton
                 variant="primary"
-                onClick={() => mut.mutate("confirmed")}
-                disabled={mut.isPending}
+                onClick={() => setPending("confirmed")}
+                disabled={mut.isPending || alreadyReviewed}
                 icon={<Check className="h-4 w-4" />}
               >
                 Approve violation
               </SoftButton>
               <SoftButton
                 variant="ghost"
-                onClick={() => mut.mutate("dismissed")}
-                disabled={mut.isPending}
+                onClick={() => setPending("dismissed")}
+                disabled={mut.isPending || alreadyReviewed}
                 icon={<X className="h-4 w-4" />}
               >
                 Reject (false positive)
               </SoftButton>
+              {alreadyReviewed && (
+                <div className="text-[11px] text-muted-foreground mt-1 leading-snug">
+                  Decision already recorded — reset to pending to change.
+                </div>
+              )}
               {v.status !== "pending" && (
                 <button
                   onClick={() => mut.mutate("pending")}
-                  className="text-xs text-muted-foreground underline mt-1"
+                  disabled={mut.isPending}
+                  className="text-xs text-muted-foreground underline mt-1 disabled:opacity-50"
                 >
                   Reset to pending
                 </button>
@@ -178,6 +200,44 @@ function ViolationDetail() {
           </SoftCard>
         </div>
       </div>
+
+      <AlertDialog
+        open={pending !== null}
+        onOpenChange={(o) => {
+          if (!o && !mut.isPending) setPending(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pending === "confirmed"
+                ? "Approve this violation?"
+                : "Reject as false positive?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pending === "confirmed"
+                ? "This will mark the violation as confirmed. Your officer ID and the current time will be recorded on the case."
+                : "This will dismiss the violation as a false positive. Your officer ID and the current time will be recorded on the case."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={mut.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={mut.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                if (pending) mut.mutate(pending);
+              }}
+            >
+              {mut.isPending
+                ? "Saving…"
+                : pending === "confirmed"
+                  ? "Approve"
+                  : "Reject"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
