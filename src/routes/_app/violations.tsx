@@ -30,7 +30,7 @@ function ViolationsPage() {
   const list = useServerFn(listViolations);
   const { data: violations = [], isLoading } = useQuery({
     queryKey: ["violations", filter],
-    queryFn: () => list({ filter }),
+    queryFn: () => list({ data: { filter } }),
     refetchInterval: 10000,
   });
 
