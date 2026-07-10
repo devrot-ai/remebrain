@@ -40,9 +40,16 @@ export const updateViolationStatus = createServerFn({ method: "POST" })
       .parse(i),
   )
   .handler(async ({ data, context }) => {
+    const isReview = data.status === "confirmed" || data.status === "dismissed";
+    const patch: Record<string, unknown> = {
+      status: data.status,
+      notes: data.notes ?? null,
+      reviewed_by: isReview ? context.userId : null,
+      reviewed_at: isReview ? new Date().toISOString() : null,
+    };
     const { data: row, error } = await context.supabase
       .from("violations")
-      .update({ status: data.status, notes: data.notes ?? null })
+      .update(patch)
       .eq("id", data.id)
       .select()
       .single();
