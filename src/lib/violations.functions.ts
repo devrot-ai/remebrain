@@ -14,7 +14,7 @@ export const listViolations = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .limit(200);
 
-    const filter = data?.filter;
+    const filter = data.filter;
     if (filter === "pending") {
       query = query.eq("status", "pending");
     } else if (filter === "reviewed") {
