@@ -49,7 +49,7 @@ export const updateViolationStatus = createServerFn({ method: "POST" })
     };
     const { data: row, error } = await context.supabase
       .from("violations")
-      .update(patch)
+      .update(patch as never)
       .eq("id", data.id)
       .select()
       .single();
