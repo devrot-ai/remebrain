@@ -134,8 +134,21 @@ function ViolationDetail() {
 
           <SoftCard>
             <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-3">
-              Review
+              Officer review
             </div>
+            {(v as any).reviewed_at && (
+              <div className="soft-pressed-sm rounded-xl px-3 py-2 mb-3 text-[11px]">
+                <div className="text-muted-foreground">
+                  {v.status === "confirmed" ? "Approved" : v.status === "dismissed" ? "Rejected" : "Reviewed"} on
+                </div>
+                <div className="font-bold">
+                  {new Date((v as any).reviewed_at).toLocaleString()}
+                </div>
+                <div className="text-muted-foreground mt-1 truncate">
+                  by officer {String((v as any).reviewed_by ?? "").slice(0, 8) || "—"}
+                </div>
+              </div>
+            )}
             <div className="flex flex-col gap-2">
               <SoftButton
                 variant="primary"
@@ -143,7 +156,7 @@ function ViolationDetail() {
                 disabled={mut.isPending}
                 icon={<Check className="h-4 w-4" />}
               >
-                Confirm violation
+                Approve violation
               </SoftButton>
               <SoftButton
                 variant="ghost"
@@ -151,7 +164,7 @@ function ViolationDetail() {
                 disabled={mut.isPending}
                 icon={<X className="h-4 w-4" />}
               >
-                Dismiss (false positive)
+                Reject (false positive)
               </SoftButton>
               {v.status !== "pending" && (
                 <button
