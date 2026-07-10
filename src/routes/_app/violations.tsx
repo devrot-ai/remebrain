@@ -25,22 +25,41 @@ export const Route = createFileRoute("/_app/violations")({
 });
 
 function ViolationsPage() {
+  const { filter } = Route.useSearch();
+  const navigate = Route.useNavigate();
   const list = useServerFn(listViolations);
   const { data: violations = [], isLoading } = useQuery({
-    queryKey: ["violations"],
-    queryFn: () => list(),
+    queryKey: ["violations", filter],
+    queryFn: () => list({ filter }),
     refetchInterval: 10000,
   });
+
+  const emptyMessage =
+    filter === "pending"
+      ? "No violations pending review."
+      : "No reviewed violations yet.";
 
   return (
     <>
       <TopBar title="Violations" subtitle="Full log of AI-recorded events" />
+      <Tabs
+        value={filter}
+        onValueChange={(value) =>
+          navigate({ search: { filter: value as "pending" | "reviewed" } })
+        }
+        className="mb-4"
+      >
+        <TabsList>
+          <TabsTrigger value="pending">Pending review</TabsTrigger>
+          <TabsTrigger value="reviewed">Approved / Rejected</TabsTrigger>
+        </TabsList>
+      </Tabs>
       {isLoading ? (
         <div className="text-sm text-muted-foreground">Loading…</div>
       ) : violations.length === 0 ? (
         <SoftCard>
           <div className="text-center py-8 text-sm text-muted-foreground">
-            No violations recorded yet.
+            {emptyMessage}
           </div>
         </SoftCard>
       ) : (
