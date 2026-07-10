@@ -2,11 +2,22 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Check, X } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { TopBar } from "@/components/layout/TopBar";
 import { SoftCard } from "@/components/soft/SoftCard";
 import { SoftBadge } from "@/components/soft/SoftBadge";
 import { SoftButton } from "@/components/soft/SoftButton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { getViolation, updateViolationStatus } from "@/lib/violations.functions";
 import { getFrameSignedUrl } from "@/lib/detections.functions";
 
