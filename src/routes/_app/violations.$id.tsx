@@ -71,6 +71,8 @@ function ViolationDetail() {
     },
   });
 
+  const [pending, setPending] = useState<"confirmed" | "dismissed" | null>(null);
+
   const mut = useMutation({
     mutationFn: (status: "confirmed" | "dismissed" | "pending") =>
       update({ data: { id, status } }),
@@ -79,7 +81,10 @@ function ViolationDetail() {
       qc.invalidateQueries({ queryKey: ["violation", id] });
       qc.invalidateQueries({ queryKey: ["violations"] });
     },
+    onSettled: () => setPending(null),
   });
+
+  const alreadyReviewed = v?.status === "confirmed" || v?.status === "dismissed";
 
   if (isLoading || !v) {
     return (
