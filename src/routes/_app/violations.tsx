@@ -1,12 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { TopBar } from "@/components/layout/TopBar";
 import { SoftCard } from "@/components/soft/SoftCard";
 import { SoftBadge } from "@/components/soft/SoftBadge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { listViolations } from "@/lib/violations.functions";
 
+const violationsSearchSchema = z.object({
+  filter: fallback(z.enum(["pending", "reviewed"]), "pending").default("pending"),
+});
+
 export const Route = createFileRoute("/_app/violations")({
+  validateSearch: zodValidator(violationsSearchSchema),
   head: () => ({
     meta: [
       { title: "Violations — LitterCam AI" },
@@ -17,22 +25,41 @@ export const Route = createFileRoute("/_app/violations")({
 });
 
 function ViolationsPage() {
+  const { filter } = Route.useSearch();
+  const navigate = Route.useNavigate();
   const list = useServerFn(listViolations);
   const { data: violations = [], isLoading } = useQuery({
-    queryKey: ["violations"],
-    queryFn: () => list(),
+    queryKey: ["violations", filter],
+    queryFn: () => list({ data: { filter } }),
     refetchInterval: 10000,
   });
+
+  const emptyMessage =
+    filter === "pending"
+      ? "No violations pending review."
+      : "No reviewed violations yet.";
 
   return (
     <>
       <TopBar title="Violations" subtitle="Full log of AI-recorded events" />
+      <Tabs
+        value={filter}
+        onValueChange={(value) =>
+          navigate({ search: { filter: value as "pending" | "reviewed" } })
+        }
+        className="mb-4"
+      >
+        <TabsList>
+          <TabsTrigger value="pending">Pending review</TabsTrigger>
+          <TabsTrigger value="reviewed">Approved / Rejected</TabsTrigger>
+        </TabsList>
+      </Tabs>
       {isLoading ? (
         <div className="text-sm text-muted-foreground">Loading…</div>
       ) : violations.length === 0 ? (
         <SoftCard>
           <div className="text-center py-8 text-sm text-muted-foreground">
-            No violations recorded yet.
+            {emptyMessage}
           </div>
         </SoftCard>
       ) : (

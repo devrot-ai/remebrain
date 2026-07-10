@@ -4,14 +4,26 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const listViolations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
+  .inputValidator((i: unknown) =>
+    z.object({ filter: z.enum(["pending", "reviewed"]).optional() }).parse(i),
+  )
+  .handler(async ({ data, context }) => {
+    let query = context.supabase
       .from("violations")
       .select("*, detections(*), cameras(name, location)")
       .order("created_at", { ascending: false })
       .limit(200);
+
+    const filter = data.filter;
+    if (filter === "pending") {
+      query = query.eq("status", "pending");
+    } else if (filter === "reviewed") {
+      query = query.in("status", ["confirmed", "dismissed"]);
+    }
+
+    const { data: rows, error } = await query;
     if (error) throw new Error(error.message);
-    return data ?? [];
+    return rows ?? [];
   });
 
 export const getViolation = createServerFn({ method: "GET" })
