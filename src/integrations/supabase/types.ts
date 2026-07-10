@@ -220,6 +220,8 @@ export type Database = {
           notes: string | null
           owner_id: string
           plate_guess: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           severity: string
           status: string
           updated_at: string
@@ -232,6 +234,8 @@ export type Database = {
           notes?: string | null
           owner_id: string
           plate_guess?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           severity?: string
           status?: string
           updated_at?: string
@@ -244,6 +248,8 @@ export type Database = {
           notes?: string | null
           owner_id?: string
           plate_guess?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           severity?: string
           status?: string
           updated_at?: string
