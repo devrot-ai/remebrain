@@ -5,12 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const listViolations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
-    z
-      .object({
-        filter: z.enum(["pending", "reviewed"]).optional(),
-      })
-      .optional()
-      .parse(i),
+    z.object({ filter: z.enum(["pending", "reviewed"]).optional() }).parse(i),
   )
   .handler(async ({ data, context }) => {
     let query = context.supabase
