@@ -1,12 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { TopBar } from "@/components/layout/TopBar";
 import { SoftCard } from "@/components/soft/SoftCard";
 import { SoftBadge } from "@/components/soft/SoftBadge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { listViolations } from "@/lib/violations.functions";
 
+const violationsSearchSchema = z.object({
+  filter: fallback(z.enum(["pending", "reviewed"]), "pending").default("pending"),
+});
+
 export const Route = createFileRoute("/_app/violations")({
+  validateSearch: zodValidator(violationsSearchSchema),
   head: () => ({
     meta: [
       { title: "Violations — LitterCam AI" },
