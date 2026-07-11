@@ -228,6 +228,39 @@ function ViolationsPage() {
           </div>
         </SoftCard>
       )}
+
+      {total > 0 ? (
+        <div className="mt-4 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+          <div>
+            Showing <span className="font-bold text-foreground">{rangeStart}</span>–
+            <span className="font-bold text-foreground">{rangeEnd}</span> of{" "}
+            <span className="font-bold text-foreground">{total}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage <= 1}
+              className="soft-raised-sm soft-press rounded-xl px-3 py-1.5 font-bold text-brand-blue disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <span className="px-2">
+              Page <span className="font-bold text-foreground">{currentPage}</span> of{" "}
+              <span className="font-bold text-foreground">{totalPages}</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage >= totalPages}
+              className="soft-raised-sm soft-press rounded-xl px-3 py-1.5 font-bold text-brand-blue disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      ) : null}
+
     </>
   );
 }
