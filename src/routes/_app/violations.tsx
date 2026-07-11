@@ -39,7 +39,7 @@ function ViolationsPage() {
   useEffect(() => {
     const t = setTimeout(() => {
       if (plateInput !== plate) {
-        navigate({ search: (prev) => ({ ...prev, plate: plateInput }) });
+        navigate({ search: (prev: any) => ({ ...prev, plate: plateInput }) });
       }
     }, 300);
     return () => clearTimeout(t);
@@ -68,7 +68,7 @@ function ViolationsPage() {
       <Tabs
         value={filter}
         onValueChange={(value) =>
-          navigate({ search: (prev) => ({ ...prev, filter: value as "pending" | "reviewed" }) })
+          navigate({ search: (prev: any) => ({ ...prev, filter: value as "pending" | "reviewed" }) })
         }
         className="mb-4"
       >
@@ -98,7 +98,7 @@ function ViolationsPage() {
               type="date"
               value={from}
               onChange={(e) =>
-                navigate({ search: (prev) => ({ ...prev, from: e.target.value }) })
+                navigate({ search: (prev: any) => ({ ...prev, from: e.target.value }) })
               }
             />
           </div>
@@ -110,7 +110,7 @@ function ViolationsPage() {
               type="date"
               value={to}
               onChange={(e) =>
-                navigate({ search: (prev) => ({ ...prev, to: e.target.value }) })
+                navigate({ search: (prev: any) => ({ ...prev, to: e.target.value }) })
               }
             />
           </div>
@@ -118,7 +118,7 @@ function ViolationsPage() {
             <button
               type="button"
               onClick={() =>
-                navigate({ search: (prev) => ({ ...prev, plate: "", from: "", to: "" }) })
+                navigate({ search: (prev: any) => ({ ...prev, plate: "", from: "", to: "" }) })
               }
               className="soft-raised-sm soft-press rounded-xl px-3 py-2 text-xs font-bold text-brand-blue"
             >
