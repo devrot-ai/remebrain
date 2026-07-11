@@ -92,7 +92,7 @@ function ViolationsPage() {
       <Tabs
         value={filter}
         onValueChange={(value) =>
-          navigate({ search: (prev: any) => ({ ...prev, filter: value as "pending" | "reviewed" }) })
+          navigate({ search: (prev: any) => ({ ...prev, filter: value as "pending" | "reviewed", page: 1 }) })
         }
         className="mb-4"
       >
@@ -122,7 +122,7 @@ function ViolationsPage() {
               type="date"
               value={from}
               onChange={(e) =>
-                navigate({ search: (prev: any) => ({ ...prev, from: e.target.value }) })
+                navigate({ search: (prev: any) => ({ ...prev, from: e.target.value, page: 1 }) })
               }
             />
           </div>
@@ -134,7 +134,7 @@ function ViolationsPage() {
               type="date"
               value={to}
               onChange={(e) =>
-                navigate({ search: (prev: any) => ({ ...prev, to: e.target.value }) })
+                navigate({ search: (prev: any) => ({ ...prev, to: e.target.value, page: 1 }) })
               }
             />
           </div>
@@ -142,7 +142,7 @@ function ViolationsPage() {
             <button
               type="button"
               onClick={() =>
-                navigate({ search: (prev: any) => ({ ...prev, plate: "", from: "", to: "" }) })
+                navigate({ search: (prev: any) => ({ ...prev, plate: "", from: "", to: "", page: 1 }) })
               }
               className="soft-raised-sm soft-press rounded-xl px-3 py-2 text-xs font-bold text-brand-blue"
             >
