@@ -5,7 +5,14 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const listViolations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
-    z.object({ filter: z.enum(["pending", "reviewed"]).optional() }).parse(i),
+    z
+      .object({
+        filter: z.enum(["pending", "reviewed"]).optional(),
+        plate: z.string().optional(),
+        from: z.string().optional(),
+        to: z.string().optional(),
+      })
+      .parse(i),
   )
   .handler(async ({ data, context }) => {
     let query = context.supabase
@@ -20,6 +27,13 @@ export const listViolations = createServerFn({ method: "GET" })
     } else if (filter === "reviewed") {
       query = query.in("status", ["confirmed", "dismissed"]);
     }
+
+    if (data.plate && data.plate.trim()) {
+      query = query.ilike("plate_guess", `%${data.plate.trim()}%`);
+    }
+    if (data.from) query = query.gte("created_at", data.from);
+    if (data.to) query = query.lte("created_at", data.to);
+
 
     const { data: rows, error } = await query;
     if (error) throw new Error(error.message);
