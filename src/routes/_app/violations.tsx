@@ -11,12 +11,16 @@ import { SoftInput } from "@/components/soft/SoftInput";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { listViolations } from "@/lib/violations.functions";
 
+const PAGE_SIZE = 25;
+
 const violationsSearchSchema = z.object({
   filter: fallback(z.enum(["pending", "reviewed"]), "pending").default("pending"),
   plate: fallback(z.string(), "").default(""),
   from: fallback(z.string(), "").default(""),
   to: fallback(z.string(), "").default(""),
+  page: fallback(z.number().int(), 1).default(1),
 });
+
 
 export const Route = createFileRoute("/_app/violations")({
   validateSearch: zodValidator(violationsSearchSchema),
