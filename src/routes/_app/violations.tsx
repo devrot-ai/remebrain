@@ -3,14 +3,19 @@ import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useState } from "react";
 import { TopBar } from "@/components/layout/TopBar";
 import { SoftCard } from "@/components/soft/SoftCard";
 import { SoftBadge } from "@/components/soft/SoftBadge";
+import { SoftInput } from "@/components/soft/SoftInput";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { listViolations } from "@/lib/violations.functions";
 
 const violationsSearchSchema = z.object({
   filter: fallback(z.enum(["pending", "reviewed"]), "pending").default("pending"),
+  plate: fallback(z.string(), "").default(""),
+  from: fallback(z.string(), "").default(""),
+  to: fallback(z.string(), "").default(""),
 });
 
 export const Route = createFileRoute("/_app/violations")({
@@ -25,17 +30,35 @@ export const Route = createFileRoute("/_app/violations")({
 });
 
 function ViolationsPage() {
-  const { filter } = Route.useSearch();
+  const { filter, plate, from, to } = Route.useSearch();
   const navigate = Route.useNavigate();
   const list = useServerFn(listViolations);
+
+  const [plateInput, setPlateInput] = useState(plate);
+  useEffect(() => setPlateInput(plate), [plate]);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (plateInput !== plate) {
+        navigate({ search: (prev: any) => ({ ...prev, plate: plateInput }) });
+      }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [plateInput, plate, navigate]);
+
+  const fromIso = from ? new Date(from).toISOString() : "";
+  const toIso = to ? new Date(`${to}T23:59:59.999`).toISOString() : "";
+
   const { data: violations = [], isLoading } = useQuery({
-    queryKey: ["violations", filter],
-    queryFn: () => list({ data: { filter } }),
+    queryKey: ["violations", filter, plate, fromIso, toIso],
+    queryFn: () =>
+      list({ data: { filter, plate: plate || undefined, from: fromIso || undefined, to: toIso || undefined } }),
     refetchInterval: 10000,
   });
 
-  const emptyMessage =
-    filter === "pending"
+  const hasFilters = plate || from || to;
+  const emptyMessage = hasFilters
+    ? "No violations match your filters."
+    : filter === "pending"
       ? "No violations pending review."
       : "No reviewed violations yet.";
 
@@ -45,7 +68,7 @@ function ViolationsPage() {
       <Tabs
         value={filter}
         onValueChange={(value) =>
-          navigate({ search: { filter: value as "pending" | "reviewed" } })
+          navigate({ search: (prev: any) => ({ ...prev, filter: value as "pending" | "reviewed" }) })
         }
         className="mb-4"
       >
@@ -54,6 +77,57 @@ function ViolationsPage() {
           <TabsTrigger value="reviewed">Approved / Rejected</TabsTrigger>
         </TabsList>
       </Tabs>
+
+      <SoftCard className="mb-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="flex-1 min-w-[200px]">
+            <label className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">
+              License plate
+            </label>
+            <SoftInput
+              placeholder="Search plate…"
+              value={plateInput}
+              onChange={(e) => setPlateInput(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">
+              From
+            </label>
+            <SoftInput
+              type="date"
+              value={from}
+              onChange={(e) =>
+                navigate({ search: (prev: any) => ({ ...prev, from: e.target.value }) })
+              }
+            />
+          </div>
+          <div>
+            <label className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">
+              To
+            </label>
+            <SoftInput
+              type="date"
+              value={to}
+              onChange={(e) =>
+                navigate({ search: (prev: any) => ({ ...prev, to: e.target.value }) })
+              }
+            />
+          </div>
+          {hasFilters ? (
+            <button
+              type="button"
+              onClick={() =>
+                navigate({ search: (prev: any) => ({ ...prev, plate: "", from: "", to: "" }) })
+              }
+              className="soft-raised-sm soft-press rounded-xl px-3 py-2 text-xs font-bold text-brand-blue"
+            >
+              Clear
+            </button>
+          ) : null}
+        </div>
+      </SoftCard>
+
       {isLoading ? (
         <div className="text-sm text-muted-foreground">Loading…</div>
       ) : violations.length === 0 ? (
