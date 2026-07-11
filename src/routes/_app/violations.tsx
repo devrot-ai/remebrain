@@ -11,12 +11,16 @@ import { SoftInput } from "@/components/soft/SoftInput";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { listViolations } from "@/lib/violations.functions";
 
+const PAGE_SIZE = 25;
+
 const violationsSearchSchema = z.object({
   filter: fallback(z.enum(["pending", "reviewed"]), "pending").default("pending"),
   plate: fallback(z.string(), "").default(""),
   from: fallback(z.string(), "").default(""),
   to: fallback(z.string(), "").default(""),
+  page: fallback(z.number().int(), 1).default(1),
 });
+
 
 export const Route = createFileRoute("/_app/violations")({
   validateSearch: zodValidator(violationsSearchSchema),
@@ -30,7 +34,7 @@ export const Route = createFileRoute("/_app/violations")({
 });
 
 function ViolationsPage() {
-  const { filter, plate, from, to } = Route.useSearch();
+  const { filter, plate, from, to, page } = Route.useSearch();
   const navigate = Route.useNavigate();
   const list = useServerFn(listViolations);
 
@@ -39,7 +43,7 @@ function ViolationsPage() {
   useEffect(() => {
     const t = setTimeout(() => {
       if (plateInput !== plate) {
-        navigate({ search: (prev: any) => ({ ...prev, plate: plateInput }) });
+        navigate({ search: (prev: any) => ({ ...prev, plate: plateInput, page: 1 }) });
       }
     }, 300);
     return () => clearTimeout(t);
@@ -48,12 +52,28 @@ function ViolationsPage() {
   const fromIso = from ? new Date(from).toISOString() : "";
   const toIso = to ? new Date(`${to}T23:59:59.999`).toISOString() : "";
 
-  const { data: violations = [], isLoading } = useQuery({
-    queryKey: ["violations", filter, plate, fromIso, toIso],
+  const { data, isLoading } = useQuery({
+    queryKey: ["violations", filter, plate, fromIso, toIso, page],
     queryFn: () =>
-      list({ data: { filter, plate: plate || undefined, from: fromIso || undefined, to: toIso || undefined } }),
+      list({
+        data: {
+          filter,
+          plate: plate || undefined,
+          from: fromIso || undefined,
+          to: toIso || undefined,
+          page,
+          pageSize: PAGE_SIZE,
+        },
+      }),
     refetchInterval: 10000,
   });
+
+  const violations = data && "rows" in data ? data.rows : [];
+  const total = data && "total" in data ? data.total : 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const currentPage = Math.min(Math.max(page, 1), totalPages);
+  const rangeStart = total === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(currentPage * PAGE_SIZE, total);
 
   const hasFilters = plate || from || to;
   const emptyMessage = hasFilters
@@ -62,13 +82,17 @@ function ViolationsPage() {
       ? "No violations pending review."
       : "No reviewed violations yet.";
 
+  const goToPage = (p: number) =>
+    navigate({ search: (prev: any) => ({ ...prev, page: Math.min(Math.max(p, 1), totalPages) }) });
+
+
   return (
     <>
       <TopBar title="Violations" subtitle="Full log of AI-recorded events" />
       <Tabs
         value={filter}
         onValueChange={(value) =>
-          navigate({ search: (prev: any) => ({ ...prev, filter: value as "pending" | "reviewed" }) })
+          navigate({ search: (prev: any) => ({ ...prev, filter: value as "pending" | "reviewed", page: 1 }) })
         }
         className="mb-4"
       >
@@ -98,7 +122,7 @@ function ViolationsPage() {
               type="date"
               value={from}
               onChange={(e) =>
-                navigate({ search: (prev: any) => ({ ...prev, from: e.target.value }) })
+                navigate({ search: (prev: any) => ({ ...prev, from: e.target.value, page: 1 }) })
               }
             />
           </div>
@@ -110,7 +134,7 @@ function ViolationsPage() {
               type="date"
               value={to}
               onChange={(e) =>
-                navigate({ search: (prev: any) => ({ ...prev, to: e.target.value }) })
+                navigate({ search: (prev: any) => ({ ...prev, to: e.target.value, page: 1 }) })
               }
             />
           </div>
@@ -118,7 +142,7 @@ function ViolationsPage() {
             <button
               type="button"
               onClick={() =>
-                navigate({ search: (prev: any) => ({ ...prev, plate: "", from: "", to: "" }) })
+                navigate({ search: (prev: any) => ({ ...prev, plate: "", from: "", to: "", page: 1 }) })
               }
               className="soft-raised-sm soft-press rounded-xl px-3 py-2 text-xs font-bold text-brand-blue"
             >
@@ -204,6 +228,39 @@ function ViolationsPage() {
           </div>
         </SoftCard>
       )}
+
+      {total > 0 ? (
+        <div className="mt-4 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+          <div>
+            Showing <span className="font-bold text-foreground">{rangeStart}</span>–
+            <span className="font-bold text-foreground">{rangeEnd}</span> of{" "}
+            <span className="font-bold text-foreground">{total}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage <= 1}
+              className="soft-raised-sm soft-press rounded-xl px-3 py-1.5 font-bold text-brand-blue disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <span className="px-2">
+              Page <span className="font-bold text-foreground">{currentPage}</span> of{" "}
+              <span className="font-bold text-foreground">{totalPages}</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage >= totalPages}
+              className="soft-raised-sm soft-press rounded-xl px-3 py-1.5 font-bold text-brand-blue disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      ) : null}
+
     </>
   );
 }

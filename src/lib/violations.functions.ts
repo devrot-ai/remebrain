@@ -11,15 +11,22 @@ export const listViolations = createServerFn({ method: "GET" })
         plate: z.string().optional(),
         from: z.string().optional(),
         to: z.string().optional(),
+        page: z.number().int().optional(),
+        pageSize: z.number().int().optional(),
       })
       .parse(i),
   )
   .handler(async ({ data, context }) => {
+    const pageSize = Math.min(Math.max(data.pageSize ?? 25, 1), 100);
+    const page = Math.max(data.page ?? 1, 1);
+    const fromIdx = (page - 1) * pageSize;
+    const toIdx = fromIdx + pageSize - 1;
+
     let query = context.supabase
       .from("violations")
-      .select("*, detections(*), cameras(name, location)")
+      .select("*, detections(*), cameras(name, location)", { count: "exact" })
       .order("created_at", { ascending: false })
-      .limit(200);
+      .range(fromIdx, toIdx);
 
     const filter = data.filter;
     if (filter === "pending") {
@@ -34,11 +41,11 @@ export const listViolations = createServerFn({ method: "GET" })
     if (data.from) query = query.gte("created_at", data.from);
     if (data.to) query = query.lte("created_at", data.to);
 
-
-    const { data: rows, error } = await query;
+    const { data: rows, error, count } = await query;
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    return { rows: rows ?? [], total: count ?? 0, page, pageSize };
   });
+
 
 export const getViolation = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
