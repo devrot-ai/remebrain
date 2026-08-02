@@ -1,0 +1,180 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.1",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://tzbphtvbrxjqpnxbnvjf.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "littercam-ai",
+      "version": "0.1.0",
+      "title": "LitterCam AI"
+    },
+    "tools": [
+      {
+        "name": "list_cameras",
+        "title": "List cameras",
+        "description": "List the signed-in officer's LitterCam cameras with status and thresholds.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "description": "Max cameras to return (default 25).",
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_detections",
+        "title": "List detections",
+        "description": "List recent AI litter detections for the signed-in officer, newest first. Optionally only positive detections or a single camera.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "camera_id": {
+              "description": "Filter to one camera UUID.",
+              "type": "string"
+            },
+            "only_positive": {
+              "description": "Only rows where litter was detected.",
+              "type": "boolean"
+            },
+            "limit": {
+              "description": "Max rows to return (default 25, max 100).",
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_violations",
+        "title": "List violations",
+        "description": "List littering violations for the signed-in officer. Optionally filter by review status, license plate text, and creation date range.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "status": {
+              "description": "Review status filter.",
+              "type": "string",
+              "enum": [
+                "pending",
+                "confirmed",
+                "dismissed"
+              ]
+            },
+            "plate": {
+              "description": "Partial license plate text to match.",
+              "type": "string"
+            },
+            "from": {
+              "description": "ISO timestamp lower bound on created_at.",
+              "type": "string"
+            },
+            "to": {
+              "description": "ISO timestamp upper bound on created_at.",
+              "type": "string"
+            },
+            "limit": {
+              "description": "Max rows to return (default 25, max 100).",
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_violation",
+        "title": "Get violation",
+        "description": "Fetch one violation with its detection evidence and camera details by ID.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Violation UUID."
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "review_violation",
+        "title": "Review violation",
+        "description": "Record an officer decision on a violation: approve (confirmed) or reject (dismissed). Stamps the reviewing officer and timestamp.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Violation UUID."
+            },
+            "decision": {
+              "type": "string",
+              "enum": [
+                "approve",
+                "reject"
+              ],
+              "description": "Officer decision."
+            },
+            "notes": {
+              "description": "Optional review notes.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "decision"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
