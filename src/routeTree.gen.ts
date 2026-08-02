@@ -23,6 +23,7 @@ import { Route as AppCamerasRouteImport } from './routes/_app/cameras'
 import { Route as AppAnalyticsRouteImport } from './routes/_app/analytics'
 import { Route as AppViolationsIdRouteImport } from './routes/_app/violations.$id'
 import { Route as AppCamerasIdRouteImport } from './routes/_app/cameras.$id'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -93,6 +94,11 @@ const AppCamerasIdRoute = AppCamerasIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AppCamerasRoute,
 } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/review': typeof AppReviewRoute
   '/settings': typeof AppSettingsRoute
   '/violations': typeof AppViolationsRouteWithChildren
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/cameras/$id': typeof AppCamerasIdRoute
   '/violations/$id': typeof AppViolationsIdRoute
 }
@@ -121,6 +128,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AppSettingsRoute
   '/violations': typeof AppViolationsRouteWithChildren
   '/': typeof AppIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/cameras/$id': typeof AppCamerasIdRoute
   '/violations/$id': typeof AppViolationsIdRoute
 }
@@ -138,6 +146,7 @@ export interface FileRoutesById {
   '/_app/settings': typeof AppSettingsRoute
   '/_app/violations': typeof AppViolationsRouteWithChildren
   '/_app/': typeof AppIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/_app/cameras/$id': typeof AppCamerasIdRoute
   '/_app/violations/$id': typeof AppViolationsIdRoute
 }
@@ -155,6 +164,7 @@ export interface FileRouteTypes {
     | '/review'
     | '/settings'
     | '/violations'
+    | '/.lovable/oauth/consent'
     | '/cameras/$id'
     | '/violations/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/violations'
     | '/'
+    | '/.lovable/oauth/consent'
     | '/cameras/$id'
     | '/violations/$id'
   id:
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/_app/settings'
     | '/_app/violations'
     | '/_app/'
+    | '/.lovable/oauth/consent'
     | '/_app/cameras/$id'
     | '/_app/violations/$id'
   fileRoutesById: FileRoutesById
@@ -193,6 +205,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -295,6 +308,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCamerasIdRouteImport
       parentRoute: typeof AppCamerasRoute
     }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -353,6 +373,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
