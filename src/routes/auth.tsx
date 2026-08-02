@@ -6,6 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" ? s.next : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Sign in — LitterCam AI" },
@@ -15,26 +18,42 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+/** Only allow same-origin relative paths as a post-login redirect target. */
+function safeNext(next: string | undefined): string | null {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return null;
+  return next;
+}
+
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const target = safeNext(next);
+    const go = () => {
+      if (target) window.location.replace(target);
+      else navigate({ to: "/" });
+    };
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/" });
+      if (data.session) go();
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) navigate({ to: "/" });
+      if (session) go();
     });
     return () => sub.subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, next]);
 
   const signInGoogle = async () => {
     setLoading(true);
     setError(null);
+    const target = safeNext(next);
+    const redirectUri = target
+      ? `${window.location.origin}/auth?next=${encodeURIComponent(target)}`
+      : window.location.origin;
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: redirectUri,
     });
     if (result.error) {
       setError(result.error.message ?? "Sign-in failed");
