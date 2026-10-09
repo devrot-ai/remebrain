@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_app/violations/$id")({
   head: () => ({ meta: [{ title: "Violation — LitterCam AI" }] }),
   component: ViolationDetail,
   errorComponent: ({ error }) => (
-    <div className="p-6 text-sm text-brand-red">{error.message}</div>
+    <div className="p-6 text-sm text-brand-red">{error instanceof Error ? error.message : String(error)}</div>
   ),
 });
 

@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_app/cameras/$id")({
   }),
   component: CameraDetailPage,
   errorComponent: ({ error }) => (
-    <div className="p-6 text-sm text-brand-red">{error.message}</div>
+    <div className="p-6 text-sm text-brand-red">{error instanceof Error ? error.message : String(error)}</div>
   ),
   notFoundComponent: () => <div className="p-6">Camera not found.</div>,
 });
