@@ -188,8 +188,26 @@ export function WebcamCaptureCard({ cameraId, intervalSec, onCapture }: Props) {
         )}
         {streaming && !running && (
           <SoftButton variant="ghost" onClick={stopStream}>
-            Disable camera
+            {source === "file" ? "Remove footage" : "Disable camera"}
           </SoftButton>
+        )}
+        {!running && (
+          <>
+            <SoftButton variant="ghost" onClick={() => fileInputRef.current?.click()}>
+              Upload footage
+            </SoftButton>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="video/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) void startFile(f);
+                e.target.value = "";
+              }}
+            />
+          </>
         )}
         <div className="flex items-center gap-2 ml-auto">
           <label className="text-[10px] uppercase text-muted-foreground">Every</label>
