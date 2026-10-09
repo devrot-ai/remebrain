@@ -7,7 +7,7 @@ import { SoftBadge } from "@/components/soft/SoftBadge";
 import { SoftInput } from "@/components/soft/SoftInput";
 import { analyzeAndPersist } from "@/lib/ai/persist";
 
-const MAX_EDGE = 1280;
+const MAX_EDGE = 1920;
 
 function grabJpegDataUrl(video: HTMLVideoElement): string | null {
   if (!video.videoWidth) return null;
@@ -20,7 +20,7 @@ function grabJpegDataUrl(video: HTMLVideoElement): string | null {
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
   ctx.drawImage(video, 0, 0, w, h);
-  return canvas.toDataURL("image/jpeg", 0.7);
+  return canvas.toDataURL("image/jpeg", 0.88);
 }
 
 interface Props {
@@ -40,12 +40,40 @@ export function WebcamCaptureCard({ cameraId, intervalSec, onCapture }: Props) {
   const [lastResult, setLastResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const fileUrlRef = useRef<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [source, setSource] = useState<"webcam" | "file" | null>(null);
+
   const stopStream = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
-    if (videoRef.current) videoRef.current.srcObject = null;
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+      videoRef.current.removeAttribute("src");
+      videoRef.current.load();
+    }
+    if (fileUrlRef.current) URL.revokeObjectURL(fileUrlRef.current);
+    fileUrlRef.current = null;
+    setSource(null);
     setStreaming(false);
   }, []);
+
+  const startFile = useCallback(
+    async (file: File) => {
+      setError(null);
+      stopStream();
+      const url = URL.createObjectURL(file);
+      fileUrlRef.current = url;
+      const v = videoRef.current;
+      if (!v) return;
+      v.src = url;
+      v.loop = true;
+      await v.play().catch(() => undefined);
+      setSource("file");
+      setStreaming(true);
+    },
+    [stopStream],
+  );
 
   const startStream = useCallback(async () => {
     setError(null);
@@ -59,6 +87,7 @@ export function WebcamCaptureCard({ cameraId, intervalSec, onCapture }: Props) {
         videoRef.current.srcObject = s;
         await videoRef.current.play().catch(() => undefined);
       }
+      setSource("webcam");
       setStreaming(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Camera access denied.");
