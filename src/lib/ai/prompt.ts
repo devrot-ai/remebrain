@@ -21,6 +21,11 @@ Rules:
 - If the frame shows no vehicle at all, set litter_detected=false, vehicle="none".
 - If the frame shows a vehicle but no litter, set litter_detected=false.
 - Do NOT invent a license plate. If unreadable, return "".
+- License plate reading: zoom in mentally on the plate and read it character by
+  character, left to right, keeping the original spacing/separators. Watch for
+  look-alike characters (0/O/D/Q, 1/I/L, 2/Z, 5/S, 6/G, 8/B). For any single
+  character you cannot read confidently, write "?" in its place instead of
+  guessing. If more than half the characters are unclear, return "".
 - Be conservative: only set litter_detected=true when you are reasonably sure.`;
 
 export const LITTER_USER_PROMPT =
