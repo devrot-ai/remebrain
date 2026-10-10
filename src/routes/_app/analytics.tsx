@@ -17,7 +17,9 @@ import {
 } from "recharts";
 import { TopBar } from "@/components/layout/TopBar";
 import { SoftCard } from "@/components/soft/SoftCard";
-import { violationsOverTime, litterTypes, hourlyLoad, cameraPerf } from "@/lib/mock/data";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getAnalytics } from "@/lib/analytics.functions";
 
 export const Route = createFileRoute("/_app/analytics")({
   head: () => ({
@@ -32,6 +34,12 @@ export const Route = createFileRoute("/_app/analytics")({
 const colors = ["#4a86ff", "#5ec48a", "#f0b95c", "#e15a5a", "#8f6cff", "#4dc3d1"];
 
 function AnalyticsPage() {
+  const fetchA = useServerFn(getAnalytics);
+  const { data } = useQuery({ queryKey: ["analytics"], queryFn: () => fetchA(), refetchInterval: 15000 });
+  const violationsOverTime = data?.violationsOverTime ?? [];
+  const litterTypes = data?.litterTypes ?? [];
+  const hourlyLoad = data?.hourlyLoad ?? [];
+  const cameraPerf = data?.cameraPerf ?? [];
   return (
     <>
       <TopBar title="Analytics" subtitle="City-wide performance metrics" />
@@ -71,6 +79,7 @@ function AnalyticsPage() {
             Most common litter
           </div>
           <h2 className="font-bold mb-4">By type</h2>
+          {litterTypes.length === 0 && <div className="text-xs text-muted-foreground">No litter detected yet.</div>}
           <div className="h-64">
             <ResponsiveContainer>
               <PieChart>
@@ -109,7 +118,7 @@ function AnalyticsPage() {
           <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
             Camera performance
           </div>
-          <h2 className="font-bold mb-4">Accuracy vs uptime</h2>
+          <h2 className="font-bold mb-4">Detections vs violations</h2>
           <div className="h-56">
             <ResponsiveContainer>
               <BarChart data={cameraPerf}>
@@ -117,8 +126,8 @@ function AnalyticsPage() {
                 <XAxis dataKey="name" stroke="#888" fontSize={11} />
                 <YAxis stroke="#888" fontSize={11} />
                 <Tooltip contentStyle={{ background: "#e8e8e8", border: "none", borderRadius: 16, boxShadow: "6px 6px 12px #c8c8c8,-6px -6px 12px #fff" }} />
-                <Bar dataKey="accuracy" fill="#4a86ff" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="uptime" fill="#5ec48a" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="detections" fill="#4a86ff" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="violations" fill="#5ec48a" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

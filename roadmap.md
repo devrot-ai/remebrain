@@ -1,5 +1,7 @@
 # Roadmap
 - [x] Live camera capture streams webcam or uploaded footage, saves frames, runs AI
-- [ ] Publish app so /mcp is live (requested), connect officer client (blocked: wait for deploy, then ask again)
+- [x] Heatmap + analytics use real detections/violations
+- [x] Publish requested so /mcp can go live
+- [ ] Connect officer client to /mcp (blocked: wait for deploy, then user asks again)
 - [ ] Compare real footage results vs test pictures (blocked: needs user's real footage)
-- [x] Better plate reading (prompt + higher-res frames; true model training not possible)
+- [ ] Plate training on user's footage (blocked: model can't be retrained; needs reviewed plates)
