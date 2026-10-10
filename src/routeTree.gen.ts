@@ -19,6 +19,7 @@ import { Route as AppAnalyticsRouteImport } from './routes/_app/analytics'
 import { Route as AppCamerasRouteImport } from './routes/_app/cameras'
 import { Route as AppDetectionsRouteImport } from './routes/_app/detections'
 import { Route as AppHeatmapRouteImport } from './routes/_app/heatmap'
+import { Route as AppMapRouteImport } from './routes/_app/map'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppReportsRouteImport } from './routes/_app/reports'
 import { Route as AppReviewRouteImport } from './routes/_app/review'
@@ -80,6 +81,11 @@ const AppHeatmapRoute = AppHeatmapRouteImport.update({
   path: '/heatmap',
   getParentRoute: () => AppRoute,
 } as any)
+const AppMapRoute = AppMapRouteImport.update({
+  id: '/map',
+  path: '/map',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProfileRoute = AppProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/cameras': typeof AppCamerasRouteWithChildren
   '/detections': typeof AppDetectionsRoute
   '/heatmap': typeof AppHeatmapRoute
+  '/map': typeof AppMapRoute
   '/profile': typeof AppProfileRoute
   '/reports': typeof AppReportsRoute
   '/review': typeof AppReviewRoute
@@ -156,6 +163,7 @@ export interface FileRoutesByTo {
   '/cameras': typeof AppCamerasRouteWithChildren
   '/detections': typeof AppDetectionsRoute
   '/heatmap': typeof AppHeatmapRoute
+  '/map': typeof AppMapRoute
   '/profile': typeof AppProfileRoute
   '/reports': typeof AppReportsRoute
   '/review': typeof AppReviewRoute
@@ -178,6 +186,7 @@ export interface FileRoutesById {
   '/_app/cameras': typeof AppCamerasRouteWithChildren
   '/_app/detections': typeof AppDetectionsRoute
   '/_app/heatmap': typeof AppHeatmapRoute
+  '/_app/map': typeof AppMapRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/reports': typeof AppReportsRoute
   '/_app/review': typeof AppReviewRoute
@@ -201,6 +210,7 @@ export interface FileRouteTypes {
     | '/cameras'
     | '/detections'
     | '/heatmap'
+    | '/map'
     | '/profile'
     | '/reports'
     | '/review'
@@ -220,6 +230,7 @@ export interface FileRouteTypes {
     | '/cameras'
     | '/detections'
     | '/heatmap'
+    | '/map'
     | '/profile'
     | '/reports'
     | '/review'
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/_app/cameras'
     | '/_app/detections'
     | '/_app/heatmap'
+    | '/_app/map'
     | '/_app/profile'
     | '/_app/reports'
     | '/_app/review'
@@ -333,6 +345,13 @@ declare module '@tanstack/react-router' {
       path: '/heatmap'
       fullPath: '/heatmap'
       preLoaderRoute: typeof AppHeatmapRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/map': {
+      id: '/_app/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof AppMapRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/profile': {
@@ -430,6 +449,7 @@ interface AppRouteChildren {
   AppCamerasRoute: typeof AppCamerasRouteWithChildren
   AppDetectionsRoute: typeof AppDetectionsRoute
   AppHeatmapRoute: typeof AppHeatmapRoute
+  AppMapRoute: typeof AppMapRoute
   AppProfileRoute: typeof AppProfileRoute
   AppReportsRoute: typeof AppReportsRoute
   AppReviewRoute: typeof AppReviewRoute
@@ -443,6 +463,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCamerasRoute: AppCamerasRouteWithChildren,
   AppDetectionsRoute: AppDetectionsRoute,
   AppHeatmapRoute: AppHeatmapRoute,
+  AppMapRoute: AppMapRoute,
   AppProfileRoute: AppProfileRoute,
   AppReportsRoute: AppReportsRoute,
   AppReviewRoute: AppReviewRoute,

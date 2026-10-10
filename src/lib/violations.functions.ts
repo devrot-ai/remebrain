@@ -69,6 +69,7 @@ export const updateViolationStatus = createServerFn({ method: "POST" })
         id: z.string().uuid(),
         status: z.enum(["pending", "confirmed", "dismissed"]),
         notes: z.string().max(2000).optional().nullable(),
+        correct_plate: z.string().trim().max(20).optional().nullable(),
       })
       .parse(i),
   )
@@ -80,6 +81,18 @@ export const updateViolationStatus = createServerFn({ method: "POST" })
       reviewed_by: isReview ? context.userId : null,
       reviewed_at: isReview ? new Date().toISOString() : null,
     };
+    const corrected = data.correct_plate?.trim().toUpperCase();
+    if (data.status === "confirmed" && corrected) {
+      const { data: prev } = await context.supabase
+        .from("violations").select("plate_guess").eq("id", data.id).maybeSingle();
+      patch.plate_guess = corrected;
+      await context.supabase.from("plate_examples").insert({
+        owner_id: context.userId,
+        violation_id: data.id,
+        ai_plate: prev?.plate_guess ?? null,
+        correct_plate: corrected,
+      });
+    }
     const { data: row, error } = await context.supabase
       .from("violations")
       .update(patch as never)
