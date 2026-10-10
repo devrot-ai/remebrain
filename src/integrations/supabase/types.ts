@@ -166,6 +166,33 @@ export type Database = {
           },
         ]
       }
+      plate_examples: {
+        Row: {
+          ai_plate: string | null
+          correct_plate: string
+          created_at: string
+          id: string
+          owner_id: string
+          violation_id: string | null
+        }
+        Insert: {
+          ai_plate?: string | null
+          correct_plate: string
+          created_at?: string
+          id?: string
+          owner_id: string
+          violation_id?: string | null
+        }
+        Update: {
+          ai_plate?: string | null
+          correct_plate?: string
+          created_at?: string
+          id?: string
+          owner_id?: string
+          violation_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
