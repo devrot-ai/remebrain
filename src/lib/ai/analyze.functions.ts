@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { LITTER_SYSTEM_PROMPT, LITTER_USER_PROMPT } from "./prompt";
 
 
@@ -13,8 +14,18 @@ const InputSchema = z.object({
  * Gateway. Returns the raw model text so the client can parse and normalize.
  */
 export const analyzeFrameLovable = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => InputSchema.parse(input))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { data: examples } = await context.supabase
+      .from("plate_examples")
+      .select("ai_plate, correct_plate")
+      .order("created_at", { ascending: false })
+      .limit(20);
+    const exampleText = (examples ?? []).length
+      ? "\n\nPlate corrections made by human officers on this camera network (AI read -> correct). Learn from these patterns and the local plate format:\n" +
+        (examples ?? []).map((e) => `- ${e.ai_plate || "(none)"} -> ${e.correct_plate}`).join("\n")
+      : "";
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) {
       throw new Error("LOVABLE_API_KEY is not configured on the server.");
@@ -33,7 +44,7 @@ export const analyzeFrameLovable = createServerFn({ method: "POST" })
       body: JSON.stringify({
         model,
         messages: [
-          { role: "system", content: LITTER_SYSTEM_PROMPT },
+          { role: "system", content: LITTER_SYSTEM_PROMPT + exampleText },
           {
             role: "user",
             content: [
