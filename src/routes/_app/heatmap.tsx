@@ -3,7 +3,9 @@ import { motion } from "framer-motion";
 import { TopBar } from "@/components/layout/TopBar";
 import { SoftCard } from "@/components/soft/SoftCard";
 import { SoftBadge } from "@/components/soft/SoftBadge";
-import { heatmapHotspots, cameras } from "@/lib/mock/data";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getAnalytics } from "@/lib/analytics.functions";
 
 export const Route = createFileRoute("/_app/heatmap")({
   head: () => ({
@@ -16,6 +18,23 @@ export const Route = createFileRoute("/_app/heatmap")({
 });
 
 function HeatmapPage() {
+  const fetchA = useServerFn(getAnalytics);
+  const { data } = useQuery({ queryKey: ["analytics"], queryFn: () => fetchA(), refetchInterval: 15000 });
+  const raw = data?.cameras ?? [];
+  const lats = raw.map((c) => c.lat).filter((v): v is number => v != null);
+  const lngs = raw.map((c) => c.lng).filter((v): v is number => v != null);
+  const [minLa, maxLa, minLn, maxLn] = [Math.min(...lats), Math.max(...lats), Math.min(...lngs), Math.max(...lngs)];
+  const maxV = Math.max(1, ...raw.map((c) => c.violations));
+  const placed = raw.map((c, i) => {
+    const fallbackX = 15 + ((i * 37) % 70);
+    const fallbackY = 20 + ((i * 53) % 60);
+    const x = c.lng != null && maxLn > minLn ? 10 + ((c.lng - minLn) / (maxLn - minLn)) * 80 : fallbackX;
+    const y = c.lat != null && maxLa > minLa ? 90 - ((c.lat - minLa) / (maxLa - minLa)) * 80 : fallbackY;
+    return { ...c, x, y, intensity: c.violations / maxV };
+  });
+  const heatmapHotspots = placed.filter((c) => c.violations > 0);
+  const cameras = placed;
+  const top = [...placed].sort((a, b) => b.violations - a.violations)[0];
   return (
     <>
       <TopBar title="City heatmap" subtitle="Violation density and camera coverage" />
@@ -53,16 +72,15 @@ function HeatmapPage() {
                   animate={{ scale: 1 }}
                   transition={{ delay: i * 0.1, type: "spring" }}
                 >
-                  <circle cx={`${c.lat}%`} cy={`${c.lng}%`} r="10" fill="#e8e8e8" />
-                  <circle cx={`${c.lat}%`} cy={`${c.lng}%`} r="5" fill={c.status === "online" ? "#5ec48a" : c.status === "degraded" ? "#f0b95c" : "#e15a5a"} />
+                  <circle cx={`${c.x}%`} cy={`${c.y}%`} r="10" fill="#e8e8e8" />
+                  <circle cx={`${c.x}%`} cy={`${c.y}%`} r="5" fill={c.active ? "#5ec48a" : "#e15a5a"} />
                 </motion.g>
               ))}
             </svg>
             <div className="absolute top-4 left-4 flex flex-col gap-2">
               <SoftBadge tone="red">Hotspot</SoftBadge>
               <SoftBadge tone="green">Camera online</SoftBadge>
-              <SoftBadge tone="gold">Degraded</SoftBadge>
-              <SoftBadge tone="red">Offline</SoftBadge>
+                            <SoftBadge tone="red">Offline</SoftBadge>
             </div>
           </div>
         </SoftCard>
@@ -74,7 +92,7 @@ function HeatmapPage() {
             </div>
             <div className="flex flex-col gap-3 text-sm">
               {[
-                ["Date range", "Last 7 days"],
+                ["Date range", "Last 14 days"],
                 ["Vehicle", "All types"],
                 ["Severity", "All"],
                 ["Area", "Entire city"],
@@ -90,9 +108,9 @@ function HeatmapPage() {
             <div className="text-[11px] uppercase tracking-widest text-muted-foreground mb-3">
               Top hotspot
             </div>
-            <div className="font-bold text-xl">Main St & 5th</div>
+            <div className="font-bold text-xl">{top && top.violations > 0 ? top.name : "No violations yet"}</div>
             <div className="text-sm text-muted-foreground">
-              48 detections this week · +12% vs last week
+              {top && top.violations > 0 ? `${top.violations} violations in the last 14 days${top.location ? ` · ${top.location}` : ""}` : "Run a camera to start building the map."}
             </div>
           </SoftCard>
         </div>
