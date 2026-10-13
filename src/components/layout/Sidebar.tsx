@@ -14,6 +14,7 @@ import {
   Sun,
   LogOut,
   Menu,
+  MapPin,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
