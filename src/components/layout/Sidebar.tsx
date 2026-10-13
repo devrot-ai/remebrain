@@ -15,6 +15,7 @@ import {
   LogOut,
   Menu,
   MapPin,
+  GraduationCap,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,7 @@ const items = [
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/heatmap", label: "Heatmap", icon: Map },
   { to: "/map", label: "Camera Map", icon: MapPin },
+  { to: "/plates", label: "Plate Training", icon: GraduationCap },
   { to: "/reports", label: "Reports", icon: FileText },
   { to: "/settings", label: "Settings", icon: Settings },
   { to: "/profile", label: "Profile", icon: User },

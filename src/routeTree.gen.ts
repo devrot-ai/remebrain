@@ -20,6 +20,7 @@ import { Route as AppCamerasRouteImport } from './routes/_app/cameras'
 import { Route as AppDetectionsRouteImport } from './routes/_app/detections'
 import { Route as AppHeatmapRouteImport } from './routes/_app/heatmap'
 import { Route as AppMapRouteImport } from './routes/_app/map'
+import { Route as AppPlatesRouteImport } from './routes/_app/plates'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppReportsRouteImport } from './routes/_app/reports'
 import { Route as AppReviewRouteImport } from './routes/_app/review'
@@ -86,6 +87,11 @@ const AppMapRoute = AppMapRouteImport.update({
   path: '/map',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPlatesRoute = AppPlatesRouteImport.update({
+  id: '/plates',
+  path: '/plates',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProfileRoute = AppProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/detections': typeof AppDetectionsRoute
   '/heatmap': typeof AppHeatmapRoute
   '/map': typeof AppMapRoute
+  '/plates': typeof AppPlatesRoute
   '/profile': typeof AppProfileRoute
   '/reports': typeof AppReportsRoute
   '/review': typeof AppReviewRoute
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   '/detections': typeof AppDetectionsRoute
   '/heatmap': typeof AppHeatmapRoute
   '/map': typeof AppMapRoute
+  '/plates': typeof AppPlatesRoute
   '/profile': typeof AppProfileRoute
   '/reports': typeof AppReportsRoute
   '/review': typeof AppReviewRoute
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/_app/detections': typeof AppDetectionsRoute
   '/_app/heatmap': typeof AppHeatmapRoute
   '/_app/map': typeof AppMapRoute
+  '/_app/plates': typeof AppPlatesRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/reports': typeof AppReportsRoute
   '/_app/review': typeof AppReviewRoute
@@ -211,6 +220,7 @@ export interface FileRouteTypes {
     | '/detections'
     | '/heatmap'
     | '/map'
+    | '/plates'
     | '/profile'
     | '/reports'
     | '/review'
@@ -231,6 +241,7 @@ export interface FileRouteTypes {
     | '/detections'
     | '/heatmap'
     | '/map'
+    | '/plates'
     | '/profile'
     | '/reports'
     | '/review'
@@ -253,6 +264,7 @@ export interface FileRouteTypes {
     | '/_app/detections'
     | '/_app/heatmap'
     | '/_app/map'
+    | '/_app/plates'
     | '/_app/profile'
     | '/_app/reports'
     | '/_app/review'
@@ -354,6 +366,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMapRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/plates': {
+      id: '/_app/plates'
+      path: '/plates'
+      fullPath: '/plates'
+      preLoaderRoute: typeof AppPlatesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/profile': {
       id: '/_app/profile'
       path: '/profile'
@@ -450,6 +469,7 @@ interface AppRouteChildren {
   AppDetectionsRoute: typeof AppDetectionsRoute
   AppHeatmapRoute: typeof AppHeatmapRoute
   AppMapRoute: typeof AppMapRoute
+  AppPlatesRoute: typeof AppPlatesRoute
   AppProfileRoute: typeof AppProfileRoute
   AppReportsRoute: typeof AppReportsRoute
   AppReviewRoute: typeof AppReviewRoute
@@ -464,6 +484,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppDetectionsRoute: AppDetectionsRoute,
   AppHeatmapRoute: AppHeatmapRoute,
   AppMapRoute: AppMapRoute,
+  AppPlatesRoute: AppPlatesRoute,
   AppProfileRoute: AppProfileRoute,
   AppReportsRoute: AppReportsRoute,
   AppReviewRoute: AppReviewRoute,
