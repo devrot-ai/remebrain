@@ -6,5 +6,5 @@
 - [x] Camera map page with live feed + analyze toggle
 - [x] Officer dashboard (live pending feed, inline approve/reject)
 - [x] Officer client connected to /mcp
-- [ ] Compare real footage results vs test pictures (blocked: needs user's real footage)
+- [ ] Compare a public real-world littering clip vs the existing test pictures (in progress)
 - [ ] End-to-end MCP approval demo (blocked: no pending violations yet)

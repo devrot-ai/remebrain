@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Plus, Camera as CameraIcon, Trash2, MapPin, Activity } from "lucide-react";
@@ -26,7 +26,7 @@ function CamerasPage() {
   const create = useServerFn(createCamera);
   const remove = useServerFn(deleteCamera);
   const qc = useQueryClient();
-  const router = useRouter();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
 
   const { data: cameras = [], isLoading } = useQuery({
     queryKey: ["cameras"],
@@ -54,6 +54,8 @@ function CamerasPage() {
       qc.invalidateQueries({ queryKey: ["cameras"] });
     },
   });
+
+  if (pathname !== "/cameras") return <Outlet />;
 
   return (
     <>
