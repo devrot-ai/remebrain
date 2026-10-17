@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Nested TanStack route parent pages must render their matching child outlet, conditionally when parent and child views are mutually exclusive, so child pages remain reachable.
